@@ -1,57 +1,80 @@
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Video, BookOpen, Wrench, Lock } from "lucide-react";
+import { Shield, Video, BookOpen, Wrench, Lock, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
-import heroImage from "@/assets/hero-cyber.jpg";
+import heroImage from "@/assets/hero-purple.jpg";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background via-muted/30 to-background">
       <Navigation />
       
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-4">
-        <div className="absolute inset-0 overflow-hidden">
-          <img 
-            src={heroImage} 
-            alt="Cybersecurity hero background" 
-            className="w-full h-full object-cover opacity-30"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/80 to-background"></div>
-        </div>
-        
-        <div className="container mx-auto relative z-10">
-          <div className="max-w-4xl mx-auto text-center space-y-6">
-            <h1 className="text-5xl md:text-7xl font-bold text-foreground drop-shadow-[0_0_30px_hsl(var(--cyber-glow))]">
-              Welcome to <span className="text-primary">Alma101 Hackings</span>
+        <div className="container mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+              Welcome to Alma101 Hackings - your premier online platform for mastering cybersecurity and hacking techniques.
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground">
-              Master cybersecurity and ethical hacking with expert tutorials, tools, and insights
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-              <Button 
-                asChild 
-                size="lg" 
-                className="bg-primary text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--cyber-glow))] transition-all"
-              >
-                <Link to="/auth">Get Started</Link>
-              </Button>
-              <Button 
-                asChild 
-                size="lg" 
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-              >
-                <Link to="/contact">Contact Us</Link>
-              </Button>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8 items-center max-w-6xl mx-auto">
+            {/* Hero Image */}
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+              <img 
+                src={heroImage} 
+                alt="Cybersecurity setup" 
+                className="w-full h-full object-cover"
+              />
             </div>
+
+            {/* Hero Content Card */}
+            <Card className="bg-gradient-to-br from-card to-muted border-primary/30 shadow-[0_0_40px_hsl(var(--cyber-glow)/0.3)]">
+              <CardHeader>
+                <CardTitle className="text-2xl md:text-3xl text-foreground">
+                  Leading Cyber Security
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground text-lg">
+                  Protecting your digital assets is our top priority. At Alma101 Hackings, we offer cutting-edge solutions to safeguard your business from cyber threats. Our team of experts is dedicated to providing top-notch security services tailored to your needs.
+                </p>
+                <Button 
+                  asChild 
+                  size="lg" 
+                  className="w-full bg-primary text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--cyber-glow))] transition-all"
+                >
+                  <Link to="/auth">Learn More</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Subheading */}
+          <div className="text-center mt-16">
+            <p className="text-lg md:text-xl text-muted-foreground italic max-w-4xl mx-auto">
+              Stay updated on the latest cybersecurity trends and upcoming events to stay ahead in the ever-evolving world of cybersecurity and hacking.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Stay Ahead Section */}
+      <section className="py-16 px-4 bg-muted/20">
+        <div className="container mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            Stay Ahead with <span className="text-primary">Alma101 Hackings</span>
+          </h2>
+          <div className="flex items-center justify-center gap-2 text-accent">
+            <TrendingUp className="h-6 w-6" />
+            <p className="text-xl">Continuous Learning • Expert Resources • Community Support</p>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-background to-muted/20">
+      <section className="py-20 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
@@ -63,7 +86,7 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <Card className="bg-card border-primary/30 hover:border-primary transition-all hover:shadow-[0_0_20px_hsl(var(--cyber-glow)/0.3)]">
+            <Card className="bg-gradient-to-br from-card to-muted border-primary/30 hover:border-primary transition-all hover:shadow-[0_0_30px_hsl(var(--cyber-glow)/0.3)] hover:-translate-y-1">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <Video className="h-10 w-10 text-primary" />
@@ -82,7 +105,7 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-primary/30 hover:border-primary transition-all hover:shadow-[0_0_20px_hsl(var(--cyber-glow)/0.3)]">
+            <Card className="bg-gradient-to-br from-card to-muted border-primary/30 hover:border-primary transition-all hover:shadow-[0_0_30px_hsl(var(--cyber-glow)/0.3)] hover:-translate-y-1">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <BookOpen className="h-10 w-10 text-primary" />
@@ -101,7 +124,7 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-primary/30 hover:border-primary transition-all hover:shadow-[0_0_20px_hsl(var(--cyber-glow)/0.3)]">
+            <Card className="bg-gradient-to-br from-card to-muted border-primary/30 hover:border-primary transition-all hover:shadow-[0_0_30px_hsl(var(--cyber-glow)/0.3)] hover:-translate-y-1">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <Wrench className="h-10 w-10 text-primary" />
@@ -124,11 +147,11 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 bg-muted/20">
         <div className="container mx-auto">
-          <Card className="bg-gradient-to-r from-card to-muted/20 border-primary/50 max-w-4xl mx-auto">
+          <Card className="bg-gradient-to-br from-card via-muted to-card border-primary/50 max-w-4xl mx-auto">
             <CardHeader className="text-center pb-8">
-              <Shield className="h-16 w-16 text-primary mx-auto mb-4 drop-shadow-[0_0_12px_hsl(var(--cyber-glow))]" />
+              <Shield className="h-16 w-16 text-primary mx-auto mb-4 drop-shadow-[0_0_20px_hsl(var(--cyber-glow))]" />
               <CardTitle className="text-3xl md:text-4xl text-foreground mb-4">
                 Ready to Start Your Journey?
               </CardTitle>
@@ -136,7 +159,7 @@ const Index = () => {
                 Join our community of ethical hackers and cybersecurity professionals
               </CardDescription>
             </CardHeader>
-            <CardContent className="text-center">
+            <CardContent className="text-center space-y-4">
               <Button 
                 asChild 
                 size="lg"
@@ -144,6 +167,9 @@ const Index = () => {
               >
                 <Link to="/auth">Create Free Account</Link>
               </Button>
+              <p className="text-sm text-muted-foreground">
+                No credit card required • Instant access • Cancel anytime
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -152,7 +178,9 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-primary/20">
         <div className="container mx-auto text-center text-muted-foreground">
-          <p>&copy; 2024 Alma101 Hackings. All rights reserved.</p>
+          <p className="mb-2 font-medium text-foreground">Alma101 Hackings</p>
+          <p className="text-sm italic">Legends Never Die</p>
+          <p className="text-xs mt-4">&copy; 2024 Alma101 Hackings. All rights reserved.</p>
         </div>
       </footer>
     </div>

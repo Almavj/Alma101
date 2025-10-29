@@ -34,7 +34,7 @@ const Videos = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background via-muted/30 to-background">
       <Navigation />
       <main className="container mx-auto px-4 pt-24 pb-12">
         <div className="text-center mb-12">
@@ -47,17 +47,17 @@ const Videos = () => {
         </div>
 
         {loading ? (
-          <div className="text-center text-primary">Loading videos...</div>
+          <div className="text-center text-primary text-lg">Loading videos...</div>
         ) : videos.length === 0 ? (
-          <div className="text-center text-muted-foreground">
+          <div className="text-center text-muted-foreground text-lg">
             No videos available yet. Check back soon!
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {videos.map((video) => (
-              <Card key={video.id} className="bg-card border-primary/30 hover:border-primary transition-all hover:shadow-[0_0_20px_hsl(var(--cyber-glow)/0.3)]">
+              <Card key={video.id} className="bg-gradient-to-br from-card to-muted border-primary/30 hover:border-primary transition-all hover:shadow-[0_0_30px_hsl(var(--cyber-glow)/0.3)] hover:-translate-y-1">
                 <CardHeader>
-                  <div className="relative aspect-video bg-muted rounded-lg overflow-hidden mb-4 group cursor-pointer">
+                  <div className="relative aspect-video bg-muted/50 rounded-lg overflow-hidden mb-4 group cursor-pointer">
                     {video.thumbnail_url ? (
                       <img
                         src={video.thumbnail_url}
@@ -69,13 +69,13 @@ const Videos = () => {
                         <Play className="h-16 w-16 text-primary" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Play className="h-16 w-16 text-primary" />
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Play className="h-20 w-20 text-primary drop-shadow-[0_0_15px_hsl(var(--cyber-glow))]" />
                     </div>
                   </div>
                   <CardTitle className="text-foreground">{video.title}</CardTitle>
                   {video.category && (
-                    <span className="text-xs text-primary">{video.category}</span>
+                    <span className="text-xs text-primary font-semibold">{video.category}</span>
                   )}
                 </CardHeader>
                 <CardContent>

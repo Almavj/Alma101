@@ -28,39 +28,42 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-primary/20">
+    <nav className="fixed top-0 w-full z-50 bg-background/95 backdrop-blur-md border-b border-primary/30 shadow-lg">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 group">
-            <Shield className="h-8 w-8 text-primary group-hover:drop-shadow-[0_0_8px_hsl(var(--cyber-glow))] transition-all" />
-            <span className="text-2xl font-bold text-foreground">Alma101 Hackings</span>
+            <Shield className="h-8 w-8 text-primary group-hover:drop-shadow-[0_0_12px_hsl(var(--cyber-glow))] transition-all" />
+            <div className="flex flex-col">
+              <span className="text-xl md:text-2xl font-bold text-foreground">Alma101 Hackings</span>
+              <span className="text-xs text-muted-foreground italic">Legends Never Die</span>
+            </div>
           </Link>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/" className="text-foreground hover:text-primary transition-colors">
+            <Link to="/" className="text-foreground hover:text-primary transition-colors font-medium">
               Home
             </Link>
-            <Link to="/videos" className="text-foreground hover:text-primary transition-colors">
-              Videos
+            <Link to="/videos" className="text-foreground hover:text-primary transition-colors font-medium">
+              Hacking Videos
             </Link>
-            <Link to="/blogs" className="text-foreground hover:text-primary transition-colors">
-              Blogs
+            <Link to="/blogs" className="text-foreground hover:text-primary transition-colors font-medium">
+              Blog
             </Link>
-            <Link to="/tools" className="text-foreground hover:text-primary transition-colors">
+            <Link to="/tools" className="text-foreground hover:text-primary transition-colors font-medium">
               Tools
             </Link>
-            <Link to="/contact" className="text-foreground hover:text-primary transition-colors">
+            <Link to="/contact" className="text-foreground hover:text-primary transition-colors font-medium">
               Contact
             </Link>
             
             {user ? (
-              <Button onClick={handleLogout} variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+              <Button onClick={handleLogout} variant="outline" className="border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground">
                 Logout
               </Button>
             ) : (
-              <Button asChild variant="default" className="bg-primary text-primary-foreground hover:shadow-[0_0_20px_hsl(var(--cyber-glow))]">
-                <Link to="/auth">Login</Link>
+              <Button asChild className="bg-primary text-primary-foreground hover:shadow-[0_0_20px_hsl(var(--cyber-glow))]">
+                <Link to="/auth">Log In</Link>
               </Button>
             )}
           </div>
@@ -76,15 +79,15 @@ export const Navigation = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 flex flex-col gap-4">
+          <div className="md:hidden mt-4 pb-4 flex flex-col gap-4 border-t border-primary/30 pt-4">
             <Link to="/" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
               Home
             </Link>
             <Link to="/videos" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-              Videos
+              Hacking Videos
             </Link>
             <Link to="/blogs" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
-              Blogs
+              Blog
             </Link>
             <Link to="/tools" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
               Tools
@@ -98,8 +101,8 @@ export const Navigation = () => {
                 Logout
               </Button>
             ) : (
-              <Button asChild variant="default">
-                <Link to="/auth" onClick={() => setIsMenuOpen(false)}>Login</Link>
+              <Button asChild>
+                <Link to="/auth" onClick={() => setIsMenuOpen(false)}>Log In</Link>
               </Button>
             )}
           </div>

@@ -52,7 +52,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background via-muted/30 to-background">
       <Navigation />
       <main className="container mx-auto px-4 pt-24 pb-12">
         <div className="max-w-2xl mx-auto">
@@ -65,7 +65,7 @@ const Contact = () => {
             </p>
           </div>
 
-          <Card className="bg-card border-primary/30">
+          <Card className="bg-gradient-to-br from-card to-muted border-primary/30 shadow-[0_0_30px_hsl(var(--cyber-glow)/0.2)]">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-foreground">
                 <MessageSquare className="h-6 w-6 text-primary" />
@@ -114,7 +114,7 @@ const Contact = () => {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-primary text-primary-foreground hover:shadow-[0_0_20px_hsl(var(--cyber-glow))]"
+                  className="w-full bg-primary text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--cyber-glow))]"
                   disabled={loading}
                 >
                   <Mail className="mr-2 h-4 w-4" />

@@ -34,7 +34,7 @@ const Tools = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-background via-muted/30 to-background">
       <Navigation />
       <main className="container mx-auto px-4 pt-24 pb-12">
         <div className="text-center mb-12">
@@ -47,19 +47,19 @@ const Tools = () => {
         </div>
 
         {loading ? (
-          <div className="text-center text-primary">Loading tools...</div>
+          <div className="text-center text-primary text-lg">Loading tools...</div>
         ) : tools.length === 0 ? (
-          <div className="text-center text-muted-foreground">
+          <div className="text-center text-muted-foreground text-lg">
             No tools available yet. Check back soon!
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tools.map((tool) => (
-              <Card key={tool.id} className="bg-card border-primary/30 hover:border-primary transition-all hover:shadow-[0_0_20px_hsl(var(--cyber-glow)/0.3)]">
+              <Card key={tool.id} className="bg-gradient-to-br from-card to-muted border-primary/30 hover:border-primary transition-all hover:shadow-[0_0_30px_hsl(var(--cyber-glow)/0.3)] hover:-translate-y-1">
                 <CardHeader>
                   <CardTitle className="text-foreground">{tool.name}</CardTitle>
                   {tool.category && (
-                    <span className="text-xs text-primary">{tool.category}</span>
+                    <span className="text-xs text-primary font-semibold">{tool.category}</span>
                   )}
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -70,7 +70,7 @@ const Tools = () => {
                     <Button
                       asChild
                       variant="outline"
-                      className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                      className="w-full border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
                     >
                       <a href={tool.tool_url} target="_blank" rel="noopener noreferrer">
                         Access Tool <ExternalLink className="ml-2 h-4 w-4" />

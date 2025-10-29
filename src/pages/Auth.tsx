@@ -69,11 +69,11 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md bg-card border-primary/30">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
+      <Card className="w-full max-w-md bg-gradient-to-br from-card to-muted border-primary/40 shadow-[0_0_40px_hsl(var(--cyber-glow)/0.3)]">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Shield className="h-16 w-16 text-primary drop-shadow-[0_0_12px_hsl(var(--cyber-glow))]" />
+            <Shield className="h-16 w-16 text-primary drop-shadow-[0_0_20px_hsl(var(--cyber-glow))]" />
           </div>
           <CardTitle className="text-3xl font-bold text-foreground">
             {isLogin ? "Welcome Back" : "Join Alma101"}
@@ -110,7 +110,7 @@ const Auth = () => {
             </div>
             <Button
               type="submit"
-              className="w-full bg-primary text-primary-foreground hover:shadow-[0_0_20px_hsl(var(--cyber-glow))]"
+              className="w-full bg-primary text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--cyber-glow))]"
               disabled={loading}
             >
               {loading ? "Processing..." : isLogin ? "Sign In" : "Sign Up"}
