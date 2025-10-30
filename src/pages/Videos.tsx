@@ -13,9 +13,23 @@ interface Video {
   category: string;
 }
 
+import { isAdmin } from "@/lib/admin";
+import { uploadFile } from "@/lib/storage";
+
 const Videos = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [adminMode, setAdminMode] = useState(false);
+
+  // upload form state (minimal)
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [category, setCategory] = useState("");
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -31,12 +45,97 @@ const Videos = () => {
     };
 
     fetchVideos();
+    // determine current user and admin status
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const email = session?.user?.email ?? null;
+      setUserEmail(email);
+      setAdminMode(isAdmin(email));
+    });
   }, []);
+
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminMode) return;
+    try {
+      // If files were provided, upload them to Supabase Storage first
+      let finalThumbnail = thumbnailUrl;
+      let finalVideoUrl = videoUrl;
+
+      if (thumbnailFile) {
+        const thumbPath = `thumbnails/${Date.now()}_${thumbnailFile.name}`;
+        const uploadedThumb = await uploadFile('public', thumbPath, thumbnailFile);
+        if (uploadedThumb) finalThumbnail = uploadedThumb;
+      }
+
+      if (videoFile) {
+        const vidPath = `videos/${Date.now()}_${videoFile.name}`;
+        const uploadedVid = await uploadFile('public', vidPath, videoFile);
+        if (uploadedVid) finalVideoUrl = uploadedVid;
+      }
+
+      // Call backend endpoint to create video (server will validate admin)
+      const session = await supabase.auth.getSession();
+      const token = session?.data?.session?.access_token ?? "";
+      const resp = await fetch('/sentinel-learn-lab/backend/api/videos.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ title, description, video_url: finalVideoUrl, thumbnail_url: finalThumbnail, category })
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to create video');
+      }
+      setTitle(""); setDescription(""); setVideoUrl(""); setThumbnailUrl(""); setCategory("");
+      setThumbnailFile(null); setVideoFile(null);
+      // refresh
+      // Refresh listing
+      const { data } = await supabase.from("videos").select("*").order("created_at", { ascending: false });
+      setVideos(data || []);
+    } catch (err: unknown) {
+      console.error("Upload video error:", err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!adminMode) return;
+    if (!confirm("Delete this video?")) return;
+    // Call backend to delete
+    const session = await supabase.auth.getSession();
+    const token = session?.data?.session?.access_token ?? "";
+    const resp = await fetch(`/sentinel-learn-lab/backend/api/videos.php?id=${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      console.error('Delete failed', err);
+    } else {
+      setVideos((v) => v.filter((x) => x.id !== id));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-muted/30 to-background">
       <Navigation />
       <main className="container mx-auto px-4 pt-24 pb-12">
+        {adminMode && (
+          <section className="max-w-3xl mx-auto mb-8 p-4 bg-card/60 rounded-md border border-primary/20">
+            <h2 className="text-lg font-semibold text-foreground mb-2">Admin: Upload Video</h2>
+            <form onSubmit={handleUpload} className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <input className="p-2 bg-input text-foreground rounded" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+              <input className="p-2 bg-input text-foreground rounded" placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} />
+              <input className="p-2 col-span-2 bg-input text-foreground rounded" placeholder="Video URL (optional if uploading file)" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
+              <input type="file" accept="video/*" onChange={(e) => setVideoFile(e.target.files ? e.target.files[0] : null)} className="col-span-2" />
+              <input className="p-2 col-span-2 bg-input text-foreground rounded" placeholder="Thumbnail URL (optional if uploading file)" value={thumbnailUrl} onChange={(e) => setThumbnailUrl(e.target.value)} />
+              <input type="file" accept="image/*" onChange={(e) => setThumbnailFile(e.target.files ? e.target.files[0] : null)} className="col-span-2" />
+              <textarea className="p-2 col-span-2 bg-input text-foreground rounded" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+              <button type="submit" className="col-span-2 bg-primary text-primary-foreground p-2 rounded">Upload</button>
+            </form>
+          </section>
+        )}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Hacking <span className="text-primary">Videos</span>
@@ -82,6 +181,11 @@ const Videos = () => {
                   <CardDescription className="text-muted-foreground">
                     {video.description}
                   </CardDescription>
+                  {adminMode && (
+                    <div className="mt-3">
+                      <button className="text-sm text-destructive" onClick={() => handleDelete(video.id)}>Delete</button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

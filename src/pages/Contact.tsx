@@ -44,7 +44,8 @@ const Contact = () => {
       setName("");
       setEmail("");
       setMessage("");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      console.error('Contact send error:', error);
       toast.error("Failed to send message. Please try again.");
     } finally {
       setLoading(false);

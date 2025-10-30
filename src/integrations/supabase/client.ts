@@ -5,6 +5,21 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+// Verify environment variables
+if (!SUPABASE_URL) {
+  console.error('VITE_SUPABASE_URL is not defined');
+  throw new Error('Supabase URL configuration is missing');
+}
+
+if (!SUPABASE_PUBLISHABLE_KEY) {
+  console.error('VITE_SUPABASE_PUBLISHABLE_KEY is not defined');
+  throw new Error('Supabase key configuration is missing');
+}
+
+// Initialize Supabase with auth configuration
+const supabaseUrl = SUPABASE_URL.trim();
+const supabaseKey = SUPABASE_PUBLISHABLE_KEY.trim();
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 

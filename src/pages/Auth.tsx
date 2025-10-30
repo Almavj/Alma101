@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Shield } from "lucide-react";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 const authSchema = z.object({
   email: z.string().email("Invalid email address").max(255),
@@ -21,13 +22,8 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        navigate("/");
-      }
-    });
-  }, [navigate]);
+  const [username] = useState("");
+  const location = useLocation();
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,35 +38,63 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
+        
         if (error) throw error;
-        toast.success("Login successful!");
-        navigate("/");
+        
+  toast.success("Login successful!");
+  const from = (location.state as any)?.from?.pathname || "/";
+  navigate(from);
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
-          },
+            data: { username },
+            emailRedirectTo: `${window.location.origin}/auth`
+          }
         });
+        
         if (error) throw error;
-        toast.success("Account created! You can now login.");
+        
+        if (data.user?.identities?.length === 0) {
+          toast.error("This email is already registered. Please login instead.");
+          setIsLogin(true);
+          return;
+        }
+        
+        toast.success("Verification email sent! Please check your inbox.");
         setIsLogin(true);
       }
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+    } catch (error: unknown) {
+      console.error('Auth error:', error);
+      if (error instanceof Error) {
+        const msg = error.message || "An error occurred";
+        if (msg.includes('Email not confirmed')) {
+          toast.error("Please verify your email address first.");
+        } else if (msg.includes('Invalid login credentials')) {
+          toast.error("Invalid email or password.");
+        } else if (msg.includes('Email rate limit exceeded')) {
+          toast.error("Too many attempts. Please try again later.");
+        } else {
+          toast.error(msg);
+        }
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
-      <Card className="w-full max-w-md bg-gradient-to-br from-card to-muted border-primary/40 shadow-[0_0_40px_hsl(var(--cyber-glow)/0.3)]">
+    <div className="min-h-screen flex flex-col items-center justify-start bg-gradient-to-br from-background via-muted/30 to-background p-4">
+      <Navigation />
+      <div className="flex-1 flex items-center justify-center w-full">
+        <Card className="w-full max-w-md bg-gradient-to-br from-card to-muted border-primary/40 shadow-[0_0_40px_hsl(var(--cyber-glow)/0.3)]">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <Shield className="h-16 w-16 text-primary drop-shadow-[0_0_20px_hsl(var(--cyber-glow))]" />
@@ -126,7 +150,8 @@ const Auth = () => {
             </button>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };

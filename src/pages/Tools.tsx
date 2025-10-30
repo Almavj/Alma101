@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink } from "lucide-react";
+import { isAdmin } from "@/lib/admin";
+import { uploadFile } from "@/lib/storage";
 
 interface Tool {
   id: string;
@@ -16,6 +18,13 @@ interface Tool {
 const Tools = () => {
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
+  const [adminMode, setAdminMode] = useState(false);
+
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [toolUrl, setToolUrl] = useState("");
+  const [category, setCategory] = useState("");
+  const [iconFile, setIconFile] = useState<File | null>(null);
 
   useEffect(() => {
     const fetchTools = async () => {
@@ -31,12 +40,75 @@ const Tools = () => {
     };
 
     fetchTools();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAdminMode(isAdmin(session?.user?.email ?? null));
+    });
   }, []);
+
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminMode) return;
+    let iconUrl = '';
+    if (iconFile) {
+      const path = `tools/${Date.now()}_${iconFile.name}`;
+      const uploaded = await uploadFile('public', path, iconFile);
+      if (uploaded) iconUrl = uploaded;
+    }
+    const payload: any = { name, description, tool_url: toolUrl, category };
+    if (iconUrl) payload.icon_url = iconUrl;
+
+    // call backend endpoint for creation (server validates admin)
+    const session = await supabase.auth.getSession();
+    const token = session?.data?.session?.access_token ?? "";
+    const resp = await fetch('/sentinel-learn-lab/backend/api/tools.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      console.error('Create tool failed', err);
+    } else {
+      setName(""); setDescription(""); setToolUrl(""); setCategory(""); setIconFile(null);
+      const { data } = await supabase.from("tools").select("*").order("created_at", { ascending: false });
+      setTools(data || []);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!adminMode) return;
+    if (!confirm("Delete this tool?")) return;
+    const session = await supabase.auth.getSession();
+    const token = session?.data?.session?.access_token ?? "";
+    const resp = await fetch(`/sentinel-learn-lab/backend/api/tools.php?id=${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!resp.ok) {
+      console.error('Delete failed');
+    } else setTools((t) => t.filter((x) => x.id !== id));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-muted/30 to-background">
       <Navigation />
       <main className="container mx-auto px-4 pt-24 pb-12">
+        {adminMode && (
+          <section className="max-w-3xl mx-auto mb-8 p-4 bg-card/60 rounded-md border border-primary/20">
+            <h2 className="text-lg font-semibold text-foreground mb-2">Admin: Add Tool</h2>
+            <form onSubmit={handleUpload} className="grid grid-cols-1 gap-2">
+              <input className="p-2 bg-input text-foreground rounded" placeholder="Tool name" value={name} onChange={(e) => setName(e.target.value)} required />
+              <input className="p-2 bg-input text-foreground rounded" placeholder="Tool URL" value={toolUrl} onChange={(e) => setToolUrl(e.target.value)} />
+              <input className="p-2 bg-input text-foreground rounded" placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} />
+              <input type="file" accept="image/*" onChange={(e) => setIconFile(e.target.files ? e.target.files[0] : null)} />
+              <textarea className="p-2 bg-input text-foreground rounded" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+              <button type="submit" className="bg-primary text-primary-foreground p-2 rounded">Add Tool</button>
+            </form>
+          </section>
+        )}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Hacking <span className="text-primary">Tools</span>
@@ -76,6 +148,11 @@ const Tools = () => {
                         Access Tool <ExternalLink className="ml-2 h-4 w-4" />
                       </a>
                     </Button>
+                  )}
+                  {adminMode && (
+                    <div className="mt-3">
+                      <button className="text-sm text-destructive" onClick={() => handleDelete(tool.id)}>Delete</button>
+                    </div>
                   )}
                 </CardContent>
               </Card>

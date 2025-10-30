@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "lucide-react";
 import { format } from "date-fns";
+import { isAdmin } from "@/lib/admin";
+import { uploadFile } from "@/lib/storage";
 
 interface Blog {
   id: string;
@@ -17,6 +19,14 @@ interface Blog {
 const Blogs = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [adminMode, setAdminMode] = useState(false);
+
+  // upload state
+  const [title, setTitle] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [content, setContent] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -32,12 +42,80 @@ const Blogs = () => {
     };
 
     fetchBlogs();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAdminMode(isAdmin(session?.user?.email ?? null));
+    });
   }, []);
+
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminMode) return;
+    try {
+      let finalImage = imageUrl;
+      if (imageFile) {
+        const imgPath = `blogs/${Date.now()}_${imageFile.name}`;
+        const uploaded = await uploadFile('public', imgPath, imageFile);
+        if (uploaded) finalImage = uploaded;
+      }
+
+      // send to backend for validation
+      const session = await supabase.auth.getSession();
+      const token = session?.data?.session?.access_token ?? "";
+      const resp = await fetch('/sentinel-learn-lab/backend/api/blogs.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ title, excerpt, content, image_url: finalImage })
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.message || 'Failed to create blog');
+      }
+
+      setTitle(""); setExcerpt(""); setContent(""); setImageUrl("");
+      setImageFile(null);
+      const { data } = await supabase.from("blogs").select("*").order("created_at", { ascending: false });
+      setBlogs(data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!adminMode) return;
+    if (!confirm("Delete this blog post?")) return;
+    const session = await supabase.auth.getSession();
+    const token = session?.data?.session?.access_token ?? "";
+    const resp = await fetch(`/sentinel-learn-lab/backend/api/blogs.php?id=${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!resp.ok) {
+      console.error('Delete failed');
+    } else {
+      setBlogs((b) => b.filter((x) => x.id !== id));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-muted/30 to-background">
       <Navigation />
       <main className="container mx-auto px-4 pt-24 pb-12">
+        {adminMode && (
+          <section className="max-w-3xl mx-auto mb-8 p-4 bg-card/60 rounded-md border border-primary/20">
+            <h2 className="text-lg font-semibold text-foreground mb-2">Admin: Publish Blog</h2>
+            <form onSubmit={handleUpload} className="grid grid-cols-1 gap-2">
+              <input className="p-2 bg-input text-foreground rounded" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+              <input className="p-2 bg-input text-foreground rounded" placeholder="Excerpt" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} />
+              <input className="p-2 bg-input text-foreground rounded" placeholder="Image URL (optional if uploading)" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+              <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)} />
+              <textarea className="p-2 bg-input text-foreground rounded" placeholder="Content" value={content} onChange={(e) => setContent(e.target.value)} />
+              <button type="submit" className="bg-primary text-primary-foreground p-2 rounded">Publish</button>
+            </form>
+          </section>
+        )}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Security <span className="text-primary">Insights</span>
@@ -77,6 +155,11 @@ const Blogs = () => {
                   <CardDescription className="text-muted-foreground">
                     {blog.excerpt || blog.content.substring(0, 150) + "..."}
                   </CardDescription>
+                  {adminMode && (
+                    <div className="mt-3">
+                      <button className="text-sm text-destructive" onClick={() => handleDelete(blog.id)}>Delete</button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

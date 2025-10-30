@@ -1,73 +1,96 @@
-# Welcome to your Lovable project
+# Sentinel Learn Lab
 
-## Project info
+A modern, secure learning platform built with React and PHP, featuring authentication, blog management, and cybersecurity tools.
 
-**URL**: https://lovable.dev/projects/3b65daea-7cf7-4295-bf45-882a63aa0a3f
+## Tech Stack
 
-## How can I edit this code?
+### Frontend
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+- shadcn/ui components
+- React Query for state management
+- React Router for navigation
+- Sentry for error tracking
 
-There are several ways of editing your application.
+### Backend
+- PHP
+- Supabase for authentication and database
+- Redis for caching
+- JWT for token management
 
-**Use Lovable**
+## Getting Started
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3b65daea-7cf7-4295-bf45-882a63aa0a3f) and start prompting.
+### Prerequisites
+- Node.js & npm
+- PHP 8.0 or higher
+- Composer
+- Redis (optional for caching)
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installation
 
-**Use your preferred IDE**
+1. Clone the repository
+```bash
+git clone https://github.com/Almavj/sentinel-learn-lab.git
+cd sentinel-learn-lab
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2. Install Frontend Dependencies
+```bash
+npm install
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+3. Install Backend Dependencies
+```bash
+cd backend
+composer install
+```
 
-Follow these steps:
+4. Environment Setup
+Create `.env` file in the project root for frontend:
+```env
+VITE_SUPABASE_PROJECT_ID=your_project_id
+VITE_SUPABASE_PUBLISHABLE_KEY=your_key
+VITE_SUPABASE_URL=your_supabase_url
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Create `.env` file in the backend directory:
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Running the Application
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+1. Start the Frontend
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+2. Start the Backend (in a separate terminal)
+```bash
+cd backend
+php -S localhost:8000
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The application will be available at:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8000
 
-**Use GitHub Codespaces**
+## Features
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- User Authentication (Sign up, Sign in)
+- Blog Management (Create, Read, Update, Delete)
+- Responsive UI with modern design
+- Error tracking and monitoring
+- Rate limiting and CORS protection
+- Security best practices implementation
 
-## What technologies are used for this project?
+## Contributing
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/3b65daea-7cf7-4295-bf45-882a63aa0a3f) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
