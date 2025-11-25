@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Mail, MessageSquare } from "lucide-react";
 import { z } from "zod";
@@ -34,11 +33,17 @@ const Contact = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase
-        .from("contact_submissions")
-        .insert([{ name, email, message }]);
+      const res = await fetch('/backend/api/contact.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message }),
+      });
 
-      if (error) throw error;
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        console.error('Contact API error', body);
+        throw new Error('Contact API failure');
+      }
 
       toast.success("Message sent successfully!");
       setName("");

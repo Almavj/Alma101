@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const API_URL = 'http://localhost/sentinel-learn-lab/backend/api';
+import { API_URL } from '@/lib/api';
 
 class BlogService {
     private api: ReturnType<typeof axios.create>;

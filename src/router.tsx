@@ -1,12 +1,13 @@
 import { createBrowserRouter } from 'react-router-dom';
 import Index from './pages/Index';
-import Auth from './pages/Auth';
+import Auth from './pages/Auth.new';
 import Videos from './pages/Videos';
 import Blogs from './pages/Blogs';
 import Tools from './pages/Tools';
 import Writeup from './pages/Writeup';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
+import ResetPassword from './pages/ResetPassword';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -19,6 +20,10 @@ export const router = createBrowserRouter([
     path: '/auth',
     element: <ErrorBoundary><Auth /></ErrorBoundary>,
     errorElement: <ErrorBoundary><Auth /></ErrorBoundary>,
+  },
+  {
+    path: '/reset-password',
+    element: <ErrorBoundary><ResetPassword /></ErrorBoundary>,
   },
   {
     path: '/contact',

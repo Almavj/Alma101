@@ -1,61 +1,63 @@
 <?php
-require_once '../config/database.php';
+require_once __DIR__ . '/../config/mysql.php';
 
 class User {
-    private $client;
-    private $baseUrl;
+    private $pdo;
 
-    public function __construct(Database $db) {
-        $this->client = $db->connect();
-        $this->baseUrl = $db->getBaseUrl();
+    public function __construct() {
+        $db = new MySQLDatabase();
+        $this->pdo = $db->connect();
     }
 
     /**
-     * Register a new user using Supabase Auth signup endpoint
-     * Returns the response array on success, false on failure
+     * Get user by email
+     * Returns user data or false if not found
      */
-    public function create(array $data) {
+    public function getUserByEmail(string $email) {
         try {
-            $resp = $this->client->post('/auth/v1/signup', [
-                'json' => [
-                    'email' => $data['email'],
-                    'password' => $data['password'],
-                    'data' => [
-                        'username' => $data['username'] ?? null
-                    ]
-                ]
-            ]);
-
-            $body = json_decode((string)$resp->getBody(), true);
-            if ($resp->getStatusCode() >= 200 && $resp->getStatusCode() < 300) {
-                return $body;
-            }
-
-            return false;
-        } catch (Exception $e) {
+            $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Database error in getUserByEmail: " . $e->getMessage());
             return false;
         }
     }
 
     /**
-     * Log in a user via Supabase Auth token endpoint (password grant)
+     * Create a new user
+     * Returns the user ID on success, false on failure
+     */
+    public function create(array $data) {
+        try {
+            $stmt = $this->pdo->prepare("INSERT INTO users (email, password, username) VALUES (?, ?, ?)");
+            $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
+            $stmt->execute([
+                $data['email'],
+                $hashedPassword,
+                $data['username'] ?? null
+            ]);
+            return $this->pdo->lastInsertId();
+        } catch (PDOException $e) {
+            error_log("Database error in create: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Login user
+     * Returns user data if credentials are valid, false otherwise
      */
     public function login(string $email, string $password) {
         try {
-            $resp = $this->client->post('/auth/v1/token', [
-                'json' => [
-                    'grant_type' => 'password',
-                    'email' => $email,
-                    'password' => $password
-                ]
-            ]);
-
-            $body = json_decode((string)$resp->getBody(), true);
-            if ($resp->getStatusCode() === 200) {
-                return $body; // contains access_token, refresh_token, user, etc.
+            $user = $this->getUserByEmail($email);
+            if ($user && password_verify($password, $user['password'])) {
+                unset($user['password']); // Don't return the password hash
+                return $user;
             }
             return false;
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
+            error_log("Database error in login: " . $e->getMessage());
             return false;
         }
     }

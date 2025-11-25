@@ -51,45 +51,34 @@ const Tools = () => {
     let iconUrl = '';
     if (iconFile) {
       const path = `tools/${Date.now()}_${iconFile.name}`;
-      const uploaded = await uploadFile('public', path, iconFile);
+      const uploaded = await uploadFile('tools', path, iconFile);
       if (uploaded) iconUrl = uploaded;
     }
     const payload: any = { name, description, tool_url: toolUrl, category };
     if (iconUrl) payload.icon_url = iconUrl;
-
-    // call backend endpoint for creation (server validates admin)
-    const session = await supabase.auth.getSession();
-    const token = session?.data?.session?.access_token ?? "";
-    const resp = await fetch('/sentinel-learn-lab/backend/api/tools.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
-    });
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      console.error('Create tool failed', err);
-    } else {
-      setName(""); setDescription(""); setToolUrl(""); setCategory(""); setIconFile(null);
-      const { data } = await supabase.from("tools").select("*").order("created_at", { ascending: false });
-      setTools(data || []);
+    try {
+      const { error } = await supabase.from('tools').insert([payload]);
+      if (error) console.error('Supabase create tool error', error);
+      else {
+        setName(""); setDescription(""); setToolUrl(""); setCategory(""); setIconFile(null);
+        const { data } = await supabase.from("tools").select("*").order("created_at", { ascending: false });
+        setTools(data || []);
+      }
+    } catch (err) {
+      console.error('Create tool unexpected error', err);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!adminMode) return;
     if (!confirm("Delete this tool?")) return;
-    const session = await supabase.auth.getSession();
-    const token = session?.data?.session?.access_token ?? "";
-    const resp = await fetch(`/sentinel-learn-lab/backend/api/tools.php?id=${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!resp.ok) {
-      console.error('Delete failed');
-    } else setTools((t) => t.filter((x) => x.id !== id));
+    try {
+      const { error } = await supabase.from('tools').delete().eq('id', id);
+      if (error) console.error('Supabase delete tool error', error);
+      else setTools((t) => t.filter((x) => x.id !== id));
+    } catch (err) {
+      console.error('Delete tool unexpected error', err);
+    }
   };
 
   return (

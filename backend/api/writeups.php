@@ -1,9 +1,15 @@
 <?php
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: GET,POST,PUT,DELETE");
+header("Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS");
 header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 require_once '../config/database.php';
 require_once '../models/Writeup.php';
@@ -39,12 +45,14 @@ switch($method) {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['author_id'] = $adminId;
 
-        if($writeup->create($data)) {
+        $result = $writeup->create($data);
+        if($result) {
             http_response_code(201);
-            echo json_encode(['message' => 'Writeup created successfully']);
+            echo json_encode(['message' => 'Writeup created successfully', 'data' => $result]);
         } else {
+            $err = $writeup->getLastResponse();
             http_response_code(503);
-            echo json_encode(['message' => 'Unable to create writeup']);
+            echo json_encode(['message' => 'Unable to create writeup', 'error' => $err]);
         }
         break;
 

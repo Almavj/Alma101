@@ -1,75 +1,55 @@
-# Backend Setup Instructions
+# Backend Overview
 
-## Prerequisites
-1. Install PHP 8.0 or higher
-2. Install MongoDB
-3. Install Composer
+This backend uses two data stacks:
 
-## Installation Steps
+- Supabase (REST + Auth) for content (blogs, tools, videos, writeups). Those models and API routes use the Supabase Guzzle client configured in `backend/config/database.php`.
+- MySQL (PDO) for user accounts, authentication, and password resets. These endpoints use `backend/config/mysql.php`.
 
-1. Navigate to the backend directory:
-```bash
-cd backend
+Goal of this file
+
+Make it clear which parts of the backend should talk to Supabase vs MySQL and list environment variables required to run the backend locally or in production.
+
+Environment variables
+
+Create a `.env` file in the repository root with the following values (example):
+
+```env
+# MySQL
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=alma101
+DB_USER=root
+DB_PASS=
+
+# Supabase
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_ADMIN_EMAIL=admin@yourdomain.com
+
+# SMTP
+SMTP_USER=you@example.com
+SMTP_PASS=your-app-password
 ```
 
-2. Install PHP dependencies:
+Quick notes
+
+- The MySQL connection class is `MySQLDatabase` at `backend/config/mysql.php`. It now reads configuration from environment variables.
+- Content models (for example `backend/models/Tool.php`, `backend/models/Blog.php`) expect the Supabase `Database` client from `backend/config/database.php`.
+- Auth and user management endpoints (`register.php`, `login.php`, `reset-password.php`, `admin-reset-password.php`) use the MySQL database.
+- See `backend/config/password_resets.sql` for the expected `password_resets` table schema.
+
+Running the password_resets migration
+
+Run the SQL file against your MySQL database:
+
 ```bash
-composer install
+mysql -u "$DB_USER" -p "$DB_NAME" < backend/config/password_resets.sql
 ```
 
-3. Configure environment variables:
-- Copy `.env.example` to `.env`
-- Update the MongoDB connection string and other settings
+If you'd like, I can add a small CLI script to run migrations automatically.
 
-4. Initialize MongoDB:
-```bash
-mongosh your_database_name config/init-mongo.js
-```
+Security
 
-5. Set up your web server (Apache/Nginx) to point to the backend directory
-
-## API Endpoints
-
-### Authentication
-- POST /api/login.php - Login
-- POST /api/register.php - Register new user
-
-### Blogs
-- GET /api/blogs.php - Get all blogs
-- GET /api/blogs.php?id={id} - Get single blog
-- POST /api/blogs.php - Create new blog
-- PUT /api/blogs.php?id={id} - Update blog
-- DELETE /api/blogs.php?id={id} - Delete blog
-
-### Videos
-- GET /api/videos.php - Get all videos
-- GET /api/videos.php?id={id} - Get single video
-- POST /api/videos.php - Create new video
-- PUT /api/videos.php?id={id} - Update video
-- DELETE /api/videos.php?id={id} - Delete video
-
-### Tools
-- GET /api/tools.php - Get all tools
-- GET /api/tools.php?id={id} - Get single tool
-- POST /api/tools.php - Create new tool
-- PUT /api/tools.php?id={id} - Update tool
-- DELETE /api/tools.php?id={id} - Delete tool
-
-### Contact
-- POST /api/contact.php - Submit contact form
-
-## Security
-- All endpoints except login, register, and contact form require JWT authentication
-- Tokens expire after 24 hours
-- MongoDB validation ensures data integrity
-- Password hashing using PHP's password_hash function
-
-## Error Handling
-All endpoints return appropriate HTTP status codes:
-- 200: Success
-- 201: Created
-- 400: Bad Request
-- 401: Unauthorized
-- 403: Forbidden
-- 404: Not Found
-- 500: Server Error
+- Keep Supabase keys and SMTP credentials out of source control.
+- Move any additional credentials into environment variables.

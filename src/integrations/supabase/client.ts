@@ -30,3 +30,34 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   }
 });
+
+// Runtime debug: print a masked version of the publishable key so you can confirm
+// the client loaded the correct env var. This is safe: we print only the first
+// and last 4 chars. Remove this in production.
+try {
+  const _key = SUPABASE_PUBLISHABLE_KEY?.toString() ?? '';
+  if (typeof window !== 'undefined') {
+    const masked = _key ? `${_key.slice(0,4)}...${_key.slice(-4)}` : 'MISSING';
+    // eslint-disable-next-line no-console
+    console.debug('[supabase] publishable key:', masked);
+  }
+} catch (e) {
+  // ignore
+}
+
+// Keep localStorage 'token' in sync with Supabase session so backend requests
+// that rely on localStorage('token') (axios interceptors) work.
+if (typeof window !== 'undefined') {
+  // on startup, populate token if session exists
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    const token = (session as any)?.access_token ?? null;
+    if (token) localStorage.setItem('token', token);
+  }).catch(() => {});
+
+  // listen for auth state changes and update token accordingly
+  supabase.auth.onAuthStateChange((_event, session) => {
+    const token = (session as any)?.access_token ?? null;
+    if (token) localStorage.setItem('token', token);
+    else localStorage.removeItem('token');
+  });
+}

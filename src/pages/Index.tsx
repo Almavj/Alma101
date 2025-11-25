@@ -15,7 +15,7 @@ const Index = () => {
         <div className="container mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4">
-              Welcome to Alma101 Hackings - your premier online platform for mastering cybersecurity and hacking techniques.
+              Welcome to Alma101 Security - your premier online platform for mastering cybersecurity and ethical hacking techniques.
             </h1>
           </div>
 
@@ -38,7 +38,7 @@ const Index = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground text-lg">
-                  Protecting your digital assets is our top priority. At Alma101 Hackings, we offer cutting-edge solutions to safeguard your business from cyber threats. Our team of experts is dedicated to providing top-notch security services tailored to your needs.
+                  Protecting your digital assets is our top priority. At Alma101 Security, we offer cutting-edge solutions to safeguard your business from cyber threats. Our team of experts is dedicated to providing top-notch security services tailored to your needs.
                 </p>
                 <Button 
                   asChild 
@@ -64,7 +64,7 @@ const Index = () => {
       <section className="py-16 px-4 bg-muted/20">
         <div className="container mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Stay Ahead with <span className="text-primary">Alma101 Hackings</span>
+            Stay Ahead with <span className="text-primary">Alma101 Security</span>
           </h2>
           <div className="flex items-center justify-center gap-2 text-accent">
             <TrendingUp className="h-6 w-6" />
@@ -153,18 +153,14 @@ const Index = () => {
             <CardHeader className="text-center pb-8">
               <Shield className="h-16 w-16 text-primary mx-auto mb-4 drop-shadow-[0_0_20px_hsl(var(--cyber-glow))]" />
               <CardTitle className="text-3xl md:text-4xl text-foreground mb-4">
-                Ready to Start Your Journey?
+                Ready to Start Your Journey? Stay Ahead with <span className="text-primary">Alma101 Security</span>
               </CardTitle>
               <CardDescription className="text-muted-foreground text-lg">
                 Join our community of ethical hackers and cybersecurity professionals
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center space-y-4">
-              <Button 
-                asChild 
-                size="lg"
-                className="bg-primary text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--cyber-glow))]"
-              >
+              <Button asChild size="lg" className="bg-primary text-primary-foreground w-full hover:shadow-[0_0_30px_hsl(var(--cyber-glow))] transition-all">
                 <Link to="/auth">Create Free Account</Link>
               </Button>
               <p className="text-sm text-muted-foreground">
@@ -178,9 +174,8 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-8 px-4 border-t border-primary/20">
         <div className="container mx-auto text-center text-muted-foreground">
-          <p className="mb-2 font-medium text-foreground">Alma101 Hackings</p>
-          <p className="text-sm italic">Legends Never Die</p>
-          <p className="text-xs mt-4">&copy; 2024 Alma101 Hackings. All rights reserved.</p>
+          <p className="mb-2 font-medium text-foreground">Alma101 Security</p>
+          <p className="text-xs mt-4">&copy; 2025 Alma101 Security. All rights reserved.</p>
         </div>
       </footer>
     </div>

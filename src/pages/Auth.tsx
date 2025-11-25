@@ -8,27 +8,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Shield } from "lucide-react";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { auth } from "@/services/auth.service";
 
 const authSchema = z.object({
   email: z.string().email("Invalid email address").max(255),
   password: z.string().min(6, "Password must be at least 6 characters").max(100),
+  username: z.string().min(2, "Username must be at least 2 characters").max(50).optional(),
 });
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  const [username] = useState("");
   const location = useLocation();
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validation = authSchema.safeParse({ email, password });
+    const validation = authSchema.safeParse({ 
+      email, 
+      password,
+      ...(!isLogin && { username })
+    });
+    
     if (!validation.success) {
       toast.error(validation.error.errors[0].message);
       return;
@@ -38,56 +43,29 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        
-        if (error) throw error;
-        
-  toast.success("Login successful!");
-  const from = (location.state as any)?.from?.pathname || "/";
-  navigate(from);
+        const data = await auth.login(email, password);
+        toast.success("Login successful!");
+        const from = (location.state as any)?.from?.pathname || "/";
+        navigate(from);
       } else {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { username },
-            emailRedirectTo: `${window.location.origin}/auth`
-          }
-        });
-        
-        if (error) throw error;
-        
-        if (data.user?.identities?.length === 0) {
-          toast.error("This email is already registered. Please login instead.");
-          setIsLogin(true);
-          return;
-        }
-        
-        toast.success("Verification email sent! Please check your inbox.");
+        await auth.register(username, email, password);
+        toast.success("Registration successful! Please sign in.");
         setIsLogin(true);
       }
     } catch (error: unknown) {
       console.error('Auth error:', error);
       if (error instanceof Error) {
-        const msg = error.message || "An error occurred";
-        if (msg.includes('Email not confirmed')) {
-          toast.error("Please verify your email address first.");
-        } else if (msg.includes('Invalid login credentials')) {
-          toast.error("Invalid email or password.");
-        } else if (msg.includes('Email rate limit exceeded')) {
-          toast.error("Too many attempts. Please try again later.");
-        } else {
-          toast.error(msg);
-        }
+        toast.error(error.message || "An error occurred");
       } else {
         toast.error("An unexpected error occurred");
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleForgotPassword = () => {
+    navigate('/reset-password');
   };
 
   return (
@@ -148,6 +126,17 @@ const Auth = () => {
             >
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </button>
+            {isLogin && (
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={() => navigate('/reset-password')}
+                  className="text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
           </div>
         </CardContent>
         </Card>

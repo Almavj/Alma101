@@ -52,32 +52,21 @@ const Blogs = () => {
     if (!adminMode) return;
     try {
       let finalImage = imageUrl;
-      if (imageFile) {
+        if (imageFile) {
         const imgPath = `blogs/${Date.now()}_${imageFile.name}`;
-        const uploaded = await uploadFile('public', imgPath, imageFile);
+        const uploaded = await uploadFile('blogs', imgPath, imageFile);
         if (uploaded) finalImage = uploaded;
       }
-
-      // send to backend for validation
-      const session = await supabase.auth.getSession();
-      const token = session?.data?.session?.access_token ?? "";
-      const resp = await fetch('/sentinel-learn-lab/backend/api/blogs.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ title, excerpt, content, image_url: finalImage })
-      });
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.message || 'Failed to create blog');
+      // create directly in Supabase
+      const { error } = await supabase.from('blogs').insert([{ title, excerpt, content, image_url: finalImage }]);
+      if (error) {
+        console.error('Supabase create blog error', error);
+      } else {
+        setTitle(""); setExcerpt(""); setContent(""); setImageUrl("");
+        setImageFile(null);
+        const { data } = await supabase.from("blogs").select("*").order("created_at", { ascending: false });
+        setBlogs(data || []);
       }
-
-      setTitle(""); setExcerpt(""); setContent(""); setImageUrl("");
-      setImageFile(null);
-      const { data } = await supabase.from("blogs").select("*").order("created_at", { ascending: false });
-      setBlogs(data || []);
     } catch (err) {
       console.error(err);
     }
@@ -86,16 +75,12 @@ const Blogs = () => {
   const handleDelete = async (id: string) => {
     if (!adminMode) return;
     if (!confirm("Delete this blog post?")) return;
-    const session = await supabase.auth.getSession();
-    const token = session?.data?.session?.access_token ?? "";
-    const resp = await fetch(`/sentinel-learn-lab/backend/api/blogs.php?id=${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!resp.ok) {
-      console.error('Delete failed');
-    } else {
-      setBlogs((b) => b.filter((x) => x.id !== id));
+    try {
+      const { error } = await supabase.from('blogs').delete().eq('id', id);
+      if (error) console.error('Supabase delete blog error', error);
+      else setBlogs((b) => b.filter((x) => x.id !== id));
+    } catch (err) {
+      console.error('Delete blog unexpected error', err);
     }
   };
 

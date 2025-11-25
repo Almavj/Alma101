@@ -63,37 +63,26 @@ const Videos = () => {
 
       if (thumbnailFile) {
         const thumbPath = `thumbnails/${Date.now()}_${thumbnailFile.name}`;
-        const uploadedThumb = await uploadFile('public', thumbPath, thumbnailFile);
+        const uploadedThumb = await uploadFile('videos', thumbPath, thumbnailFile);
         if (uploadedThumb) finalThumbnail = uploadedThumb;
       }
 
       if (videoFile) {
         const vidPath = `videos/${Date.now()}_${videoFile.name}`;
-        const uploadedVid = await uploadFile('public', vidPath, videoFile);
+        const uploadedVid = await uploadFile('videos', vidPath, videoFile);
         if (uploadedVid) finalVideoUrl = uploadedVid;
       }
 
-      // Call backend endpoint to create video (server will validate admin)
-      const session = await supabase.auth.getSession();
-      const token = session?.data?.session?.access_token ?? "";
-      const resp = await fetch('/sentinel-learn-lab/backend/api/videos.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ title, description, video_url: finalVideoUrl, thumbnail_url: finalThumbnail, category })
-      });
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.message || 'Failed to create video');
+      // create directly in Supabase
+      const { error } = await supabase.from('videos').insert([{ title, description, video_url: finalVideoUrl, thumbnail_url: finalThumbnail, category }]);
+      if (error) {
+        console.error('Supabase create video error', error);
+      } else {
+        setTitle(""); setDescription(""); setVideoUrl(""); setThumbnailUrl(""); setCategory("");
+        setThumbnailFile(null); setVideoFile(null);
+        const { data } = await supabase.from("videos").select("*").order("created_at", { ascending: false });
+        setVideos(data || []);
       }
-      setTitle(""); setDescription(""); setVideoUrl(""); setThumbnailUrl(""); setCategory("");
-      setThumbnailFile(null); setVideoFile(null);
-      // refresh
-      // Refresh listing
-      const { data } = await supabase.from("videos").select("*").order("created_at", { ascending: false });
-      setVideos(data || []);
     } catch (err: unknown) {
       console.error("Upload video error:", err);
     }
@@ -102,18 +91,12 @@ const Videos = () => {
   const handleDelete = async (id: string) => {
     if (!adminMode) return;
     if (!confirm("Delete this video?")) return;
-    // Call backend to delete
-    const session = await supabase.auth.getSession();
-    const token = session?.data?.session?.access_token ?? "";
-    const resp = await fetch(`/sentinel-learn-lab/backend/api/videos.php?id=${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      console.error('Delete failed', err);
-    } else {
-      setVideos((v) => v.filter((x) => x.id !== id));
+    try {
+      const { error } = await supabase.from('videos').delete().eq('id', id);
+      if (error) console.error('Supabase delete video error', error);
+      else setVideos((v) => v.filter((x) => x.id !== id));
+    } catch (err) {
+      console.error('Delete video unexpected error', err);
     }
   };
 

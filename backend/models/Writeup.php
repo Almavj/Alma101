@@ -4,6 +4,7 @@ require_once '../config/database.php';
 class Writeup {
     private $client;
     private $baseUrl;
+    private $lastResponse;
 
     public function __construct(Database $db) {
         $this->client = $db->connect();
@@ -17,13 +18,22 @@ class Writeup {
                 'headers' => [ 'Prefer' => 'return=representation' ]
             ]);
 
-            if ($resp->getStatusCode() >= 200 && $resp->getStatusCode() < 300) {
-                return json_decode((string)$resp->getBody(), true);
+            $status = $resp->getStatusCode();
+            $body = (string)$resp->getBody();
+            $this->lastResponse = ['status' => $status, 'body' => $body];
+
+            if ($status >= 200 && $status < 300) {
+                return json_decode($body, true);
             }
             return false;
         } catch (Exception $e) {
+            $this->lastResponse = ['status' => 500, 'body' => $e->getMessage()];
             return false;
         }
+    }
+
+    public function getLastResponse() {
+        return $this->lastResponse ?? null;
     }
 
     public function getAll(int $limit = 10, int $page = 1) {

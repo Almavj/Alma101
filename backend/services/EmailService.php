@@ -3,34 +3,58 @@ namespace Services;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use GuzzleHttp\Client as GuzzleClient;
 
 class EmailService {
     private $mailer;
-    private $fromEmail = 'machariaallan881@gmail.com';
-    private $fromName = 'Alma101';
+    private $fromEmail;
+    private $fromName;
 
     public function __construct() {
         $this->mailer = new PHPMailer(true);
+        // initialize from env where possible
+        $this->fromEmail = $_ENV['SUPABASE_ADMIN_EMAIL'] ?? ($_ENV['EMAIL_FROM'] ?? 'machariaallan881@gmail.com');
+        $this->fromName = $_ENV['EMAIL_FROM_NAME'] ?? 'Alma101';
         $this->configureSMTP();
     }
 
     private function configureSMTP() {
         $this->mailer->isSMTP();
-        $this->mailer->Host = 'smtp.gmail.com';
+
+        // Read SMTP configuration from environment variables with sensible defaults
+        $host = $_ENV['EMAIL_SMTP_HOST'] ?? 'smtp.gmail.com';
+        $user = $_ENV['EMAIL_SMTP_USER'] ?? $this->fromEmail;
+        $pass = $_ENV['EMAIL_SMTP_PASS'] ?? '';
+        $port = isset($_ENV['EMAIL_SMTP_PORT']) ? (int)$_ENV['EMAIL_SMTP_PORT'] : 587;
+        $secure = $_ENV['EMAIL_SMTP_SECURE'] ?? 'tls'; // tls, ssl, or empty
+
+        $this->mailer->Host = $host;
         $this->mailer->SMTPAuth = true;
-        $this->mailer->Username = $this->fromEmail;
-        $this->mailer->Password = 'elew jpeg jjpj uymd'; // Add your Gmail app password here
-        $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $this->mailer->Port = 587;
+        $this->mailer->Username = $user;
+        $this->mailer->Password = $pass;
+
+        // Configure encryption
+        if (strtolower($secure) === 'ssl') {
+            $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        } elseif (strtolower($secure) === 'tls' || $secure === '') {
+            $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        }
+
+        $this->mailer->Port = $port;
         $this->mailer->setFrom($this->fromEmail, $this->fromName);
         $this->mailer->isHTML(true);
+
+        // Debugging control
+        $debug = isset($_ENV['EMAIL_DEBUG']) && ($_ENV['EMAIL_DEBUG'] === '1' || strtolower($_ENV['EMAIL_DEBUG']) === 'true');
+        $this->mailer->SMTPDebug = $debug ? 2 : 0;
+        $this->mailer->Debugoutput = $debug ? 'html' : 'error_log';
     }
 
     private function getEmailTemplate($type, $data) {
         // Get the server's domain and protocol
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
         $domain = $_SERVER['HTTP_HOST'] ?? 'localhost:8080';
-        $logo = $protocol . $domain . '/sentinel-learn-lab/public/Alma101.jpg';
+        $logo = $protocol . $domain . '/Alma101-security/public/Alma101.jpg';
         
         $baseTemplate = <<<HTML
         <!DOCTYPE html>
@@ -89,8 +113,8 @@ class EmailService {
                 <h2>Password Reset Request</h2>
                 <p>Hello,</p>
                 <p>We received a request to reset your password for your Alma101 account. Use the following code to complete your password reset:</p>
-                <div class="code">{$data['otp']}</div>
-                <p>This code will expire in 15 minutes for security reasons.</p>
+                <a href="{$data['resetLink']}" class="button" style="display:inline-block;padding:12px 24px;background:#4F46E5;color:white;text-decoration:none;border-radius:4px;margin:20px 0;">Reset Password</a>
+                <p>This link will expire in 15 minutes for security reasons.</p>
                 <p><strong>Note:</strong> If you didn't request this reset, please secure your account and contact us immediately.</p>
                 HTML;
                 break;
@@ -138,12 +162,12 @@ class EmailService {
         return str_replace('{CONTENT}', $content, $baseTemplate);
     }
 
-    public function sendPasswordResetCode($to, $otp) {
+    public function sendPasswordResetCode($to, $resetLink) {
         try {
             $this->mailer->clearAddresses();
             $this->mailer->addAddress($to);
-            $this->mailer->Subject = 'Password Reset Code - Alma101';
-            $this->mailer->Body = $this->getEmailTemplate('password_reset', ['otp' => $otp]);
+            $this->mailer->Subject = 'Reset Your Password - Alma101';
+            $this->mailer->Body = $this->getEmailTemplate('password_reset', ['resetLink' => $resetLink]);
             return $this->mailer->send();
         } catch (Exception $e) {
             error_log("Email sending failed: " . $e->getMessage());
@@ -156,7 +180,7 @@ class EmailService {
             $this->mailer->clearAddresses();
             $this->mailer->addAddress($to);
             $this->mailer->Subject = 'Welcome to Alma101!';
-            $loginUrl = 'https://alma101-cybersecurity.vercel.app/auth'; // Update with your domain
+            $loginUrl = 'https://alma101-cybersecurity.vercel.app/auth'; 
             $this->mailer->Body = $this->getEmailTemplate('welcome', [
                 'username' => $username,
                 'loginUrl' => $loginUrl
@@ -193,6 +217,95 @@ class EmailService {
         } catch (Exception $e) {
             error_log("Email sending failed: " . $e->getMessage());
             throw new Exception("Failed to send email: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send a generic contact email to admin with Reply-To set to the sender.
+     * From will remain the configured site address (e.g. Alma101) so mail passes SPF.
+     */
+    public function sendContactEmail(string $to, string $senderName, string $senderEmail, string $messageHtml) {
+        // Prefer HTTP provider if configured (useful when SMTP ports are blocked)
+        $sendgridKey = $_ENV['SENDGRID_API_KEY'] ?? null;
+        if ($sendgridKey) {
+            $subject = 'New Contact Message from ' . $senderName;
+            $body = $this->getEmailTemplate('welcome', ['username' => $senderName, 'loginUrl' => '']);
+            $body .= $messageHtml;
+            try {
+                return $this->sendViaSendGrid($to, $subject, $body, ['email' => $senderEmail, 'name' => $senderName]);
+            } catch (Exception $e) {
+                error_log('SendGrid send failed: ' . $e->getMessage());
+                // fall through to SMTP fallback
+            }
+        }
+
+        try {
+            $this->mailer->clearAddresses();
+            $this->mailer->addAddress($to);
+            $this->mailer->Subject = 'New Contact Message from ' . $senderName;
+            // set reply-to so admin can reply directly to the sender
+            $this->mailer->addReplyTo($senderEmail, $senderName);
+
+            // Use the base template and inject the message into content area
+            $body = $this->getEmailTemplate('welcome', ['username' => $senderName, 'loginUrl' => '']);
+            $body .= $messageHtml;
+
+            $this->mailer->Body = $body;
+            return $this->mailer->send();
+        } catch (Exception $e) {
+            error_log("Email sending failed: " . $e->getMessage());
+            throw new Exception("Failed to send email: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send an email using SendGrid HTTP API v3
+     * Returns true on accepted (202) or throws on error.
+     */
+    private function sendViaSendGrid(string $to, string $subject, string $htmlBody, ?array $replyTo = null) {
+        $apiKey = $_ENV['SENDGRID_API_KEY'] ?? null;
+        if (!$apiKey) {
+            throw new Exception('No SendGrid API key configured');
+        }
+
+        try {
+            $client = new GuzzleClient([ 'base_uri' => 'https://api.sendgrid.com' ]);
+
+            $payload = [
+                'personalizations' => [
+                    [ 'to' => [ [ 'email' => $to ] ] ]
+                ],
+                'from' => [ 'email' => $this->fromEmail, 'name' => $this->fromName ],
+                'subject' => $subject,
+                'content' => [ [ 'type' => 'text/html', 'value' => $htmlBody ] ]
+            ];
+
+            if ($replyTo && isset($replyTo['email'])) {
+                $payload['reply_to'] = [ 'email' => $replyTo['email'], 'name' => $replyTo['name'] ?? '' ];
+            }
+
+            $resp = $client->post('/v3/mail/send', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $apiKey,
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json'
+                ],
+                'json' => $payload,
+                'http_errors' => false,
+                'timeout' => 10
+            ]);
+
+            $status = $resp->getStatusCode();
+            if ($status === 202) {
+                return true;
+            }
+
+            $body = (string)$resp->getBody();
+            error_log('SendGrid API error: HTTP ' . $status . ' - ' . $body);
+            throw new Exception('SendGrid API returned HTTP ' . $status);
+        } catch (\Exception $e) {
+            error_log('SendGrid exception: ' . $e->getMessage());
+            throw $e;
         }
     }
 }

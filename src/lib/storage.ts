@@ -2,7 +2,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Upload a file to Supabase Storage and return a public URL.
- * bucket: storage bucket name (e.g., 'uploads' or 'public')
+ * bucket: storage bucket name (e.g., 'blogs', 'videos', 'tools', or other public buckets)
+ * Note: the helper calls getPublicUrl after upload, so buckets must be public to return
+ * a usable URL. For private buckets, change the flow to use signed URLs from the backend.
  */
 export async function uploadFile(bucket: string, path: string, file: File): Promise<string | null> {
   try {

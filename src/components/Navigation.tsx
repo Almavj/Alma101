@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -31,13 +31,13 @@ export const Navigation = () => {
     <nav className="fixed top-0 w-full z-50 bg-background/95 backdrop-blur-md border-b border-primary/30 shadow-lg">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <Shield className="h-8 w-8 text-primary group-hover:drop-shadow-[0_0_12px_hsl(var(--cyber-glow))] transition-all" />
-            <div className="flex flex-col">
-              <span className="text-xl md:text-2xl font-bold text-foreground">Alma101 Hackings</span>
-              <span className="text-xs text-muted-foreground italic">Legends Never Die</span>
-            </div>
-          </Link>
+            <Link to="/" className="flex items-center gap-3 group">
+              <img src="/images/Alma101.png" alt="Alma101 logo" className="h-10 w-10 object-contain group-hover:drop-shadow-[0_0_12px_hsl(var(--cyber-glow))] transition-all" />
+              <div className="flex flex-col">
+                <span className="text-xl md:text-2xl font-bold text-foreground">Alma101 Security</span>
+                <span className="text-xs text-muted-foreground italic">Protecting your digital assets</span>
+              </div>
+            </Link>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-6">
@@ -98,6 +98,7 @@ export const Navigation = () => {
             <Link to="/contact" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
               Contact
             </Link>
+            {/* Forgot-password flow is available on the login page (/auth) via the "Forgot password?" control */}
             
             {user ? (
               <Button onClick={handleLogout} variant="outline" className="border-primary text-primary">
