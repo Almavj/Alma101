@@ -4,6 +4,9 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // base can be overridden at build time using VITE_BASE_PATH.
+  // Example: for GitHub Pages serving at /repo-name/ set VITE_BASE_PATH=/repo-name/
+  base: process.env.VITE_BASE_PATH || '/',
   server: {
     host: true, // Listen on all addresses
     port: 8080,
