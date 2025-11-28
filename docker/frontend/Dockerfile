@@ -17,6 +17,14 @@ COPY . .
 # RUN if [ -f ./scripts/decrypt_assets.sh ]; then sh ./scripts/decrypt_assets.sh; fi
 # Or, use a tool/secret injected via build-time secrets or CI (recommended for production).
 
+# Build-time ARGs for Vite environment variables (Vite inlines VITE_* values at build time)
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_PUBLISHABLE_KEY
+
+# Expose those ARGs as ENVs so the build sees them during `npm run build`
+ENV VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+ENV VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY}
+
 # Allow overriding base path at build time with VITE_BASE_PATH
 ARG VITE_BASE_PATH=/
 ENV VITE_BASE_PATH=${VITE_BASE_PATH}
