@@ -61,9 +61,11 @@ switch($method) {
         $data = json_decode(file_get_contents("php://input"), true);
 
         if(isset($_GET['id'])) {
-            if($writeup->update($_GET['id'], $data)) {
+            $result = $writeup->update($_GET['id'], $data);
+            if($result) {
                 http_response_code(200);
-                echo json_encode(['message' => 'Writeup updated successfully']);
+                // return the updated representation if available
+                echo json_encode(['message' => 'Writeup updated successfully', 'data' => $result]);
             } else {
                 http_response_code(503);
                 echo json_encode(['message' => 'Unable to update writeup']);

@@ -10,18 +10,15 @@ export interface User {
   role?: string;
 }
 
-const setLocalUser = (user: any) => {
-  if (user) {
-    localStorage.setItem('user', JSON.stringify(user));
-  }
+// We intentionally avoid writing any auth data to browser storage.
+// Helpers are left as no-ops so callers that previously relied on
+// side-effects won't cause runtime errors.
+const setLocalUser = (_user: any) => {
+  // no-op: do not persist user to localStorage
 };
 
-const setLocalToken = (token: string | null) => {
-  if (token) {
-    localStorage.setItem('token', token);
-  } else {
-    localStorage.removeItem('token');
-  }
+const setLocalToken = (_token: string | null) => {
+  // no-op: do not persist token to localStorage
 };
 
 export const auth = {
@@ -37,11 +34,9 @@ export const auth = {
       console.error('[auth] signInWithPassword error:', error);
       throw error;
     }
+    // Do not persist tokens to localStorage. Consumers should call
+    // supabase.auth.getSession() when they need the current token.
     setLocalUser(data.user ?? null);
-    // store access token for backend API requests
-    // data.session may be undefined in some flows; guard accordingly
-    const token = (data as any)?.session?.access_token ?? null;
-    setLocalToken(token);
     return data;
   },
 
@@ -86,13 +81,24 @@ export const auth = {
     } catch (e) {
       // ignore
     }
-    localStorage.removeItem('user');
-    setLocalToken(null);
+    // do not modify browser storage
   },
-
-  getCurrentUser(): User | null {
-    const userStr = localStorage.getItem('user');
-    if (userStr) return JSON.parse(userStr);
-    return null;
+  // Return the current authenticated user. This is async because we
+  // retrieve the user from the Supabase client at call time.
+  async getCurrentUser(): Promise<User | null> {
+    try {
+      const { data } = await supabase.auth.getUser();
+      // data.user may be undefined if no user is signed in
+      const u: any = (data as any)?.user ?? null;
+      if (!u) return null;
+      return {
+        id: u.id,
+        email: u.email,
+        username: (u.user_metadata && (u.user_metadata as any).username) || undefined,
+        role: (u.user_metadata && (u.user_metadata as any).role) || undefined,
+      } as User;
+    } catch (err) {
+      return null;
+    }
   }
 };

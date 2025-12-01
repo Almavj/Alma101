@@ -5,7 +5,22 @@ use GuzzleHttp\Client;
 use Dotenv\Dotenv;
 
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->load();
+// Use safeLoad so we can provide a clearer error message if .env is missing
+$dotenv->safeLoad();
+
+// Validate required env vars and provide a helpful message if missing
+$required = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_ANON_KEY'];
+$missing = [];
+foreach ($required as $key) {
+    $val = getenv($key) ?: ($_ENV[$key] ?? null);
+    if (empty($val)) $missing[] = $key;
+}
+if (!empty($missing)) {
+    $msg = "Missing required environment variables: " . implode(', ', $missing) . ".\nPlease create a .env file at the project root (see .env.example) and restart the server.";
+    // Log and throw a readable error to help local developers
+    error_log('[config] ' . $msg);
+    throw new \RuntimeException($msg);
+}
 
 class Database {
     private $client;

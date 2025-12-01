@@ -67,7 +67,16 @@ class Writeup {
                 'json' => $data,
                 'headers' => ['Prefer' => 'return=representation']
             ]);
-            return $resp->getStatusCode() >= 200 && $resp->getStatusCode() < 300;
+            $status = $resp->getStatusCode();
+            $body = (string)$resp->getBody();
+            $this->lastResponse = ['status' => $status, 'body' => $body];
+
+            if ($status >= 200 && $status < 300) {
+                // Supabase returns the updated rows as a JSON array when return=representation
+                $decoded = json_decode($body, true);
+                return $decoded;
+            }
+            return false;
         } catch (Exception $e) {
             return false;
         }
