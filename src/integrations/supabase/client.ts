@@ -2,8 +2,11 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// Prefer build-time inlined VITE_* values, but fall back to a runtime-injected
+// configuration (window.__ENV__) when the bundle was built without VITE vars.
+const RUNTIME_ENV = typeof window !== 'undefined' ? (window as any).__ENV__ || {} : {};
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || RUNTIME_ENV.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || RUNTIME_ENV.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // Verify environment variables
 if (!SUPABASE_URL) {
@@ -24,12 +27,27 @@ const supabaseKey = SUPABASE_PUBLISHABLE_KEY.trim();
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  // Do NOT persist session to browser storage. We prefer keeping auth
+  // sessions in-memory and using explicit retrieval (supabase.auth.getSession())
+  // for backend calls. This prevents the browser from storing tokens in
+  // localStorage and satisfies the requirement that "the browser should
+  // not store anything".
   auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
+    persistSession: false,
+    autoRefreshToken: false,
   }
 });
+
+// Expose the supabase client to the browser console in development only so
+// you can run `await __supabase.auth.getSession()` from DevTools for debugging.
+// This will not run in production builds.
+try {
+  if (typeof window !== 'undefined' && (import.meta as any).env?.DEV) {
+    (window as any).__supabase = supabase;
+  }
+} catch (e) {
+  // ignore in environments where import.meta.env isn't accessible
+}
 
 // Runtime debug: print a masked version of the publishable key so you can confirm
 // the client loaded the correct env var. This is safe: we print only the first
@@ -45,19 +63,7 @@ try {
   // ignore
 }
 
-// Keep localStorage 'token' in sync with Supabase session so backend requests
-// that rely on localStorage('token') (axios interceptors) work.
-if (typeof window !== 'undefined') {
-  // on startup, populate token if session exists
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    const token = (session as any)?.access_token ?? null;
-    if (token) localStorage.setItem('token', token);
-  }).catch(() => {});
-
-  // listen for auth state changes and update token accordingly
-  supabase.auth.onAuthStateChange((_event, session) => {
-    const token = (session as any)?.access_token ?? null;
-    if (token) localStorage.setItem('token', token);
-    else localStorage.removeItem('token');
-  });
-}
+// We intentionally avoid syncing tokens into localStorage here.
+// Any parts of the app that need a token for server requests should
+// call `supabase.auth.getSession()` at request time (see blog.service.ts
+// interceptor changes) so tokens are never persisted to browser storage.

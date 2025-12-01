@@ -15,6 +15,13 @@ interface Video {
 
 import { isAdmin } from "@/lib/admin";
 import { uploadFile } from "@/lib/storage";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const Videos = () => {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -30,6 +37,11 @@ const Videos = () => {
   const [category, setCategory] = useState("");
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [uploadLoading, setUploadLoading] = useState(false);
+
+  // video player dialog
+  const [playerOpen, setPlayerOpen] = useState(false);
+  const [playerUrl, setPlayerUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -53,10 +65,13 @@ const Videos = () => {
     });
   }, []);
 
+  const { toast } = useToast();
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adminMode) return;
     try {
+      setUploadLoading(true);
       // If files were provided, upload them to Supabase Storage first
       let finalThumbnail = thumbnailUrl;
       let finalVideoUrl = videoUrl;
@@ -65,18 +80,27 @@ const Videos = () => {
         const thumbPath = `thumbnails/${Date.now()}_${thumbnailFile.name}`;
         const uploadedThumb = await uploadFile('videos', thumbPath, thumbnailFile);
         if (uploadedThumb) finalThumbnail = uploadedThumb;
+        else {
+          toast({ title: 'Upload failed', description: 'Failed to upload thumbnail. Check console for details.', variant: 'destructive' });
+          return;
+        }
       }
 
       if (videoFile) {
         const vidPath = `videos/${Date.now()}_${videoFile.name}`;
         const uploadedVid = await uploadFile('videos', vidPath, videoFile);
         if (uploadedVid) finalVideoUrl = uploadedVid;
+        else {
+          toast({ title: 'Upload failed', description: 'Failed to upload video file. Check console for details.', variant: 'destructive' });
+          return;
+        }
       }
 
       // create directly in Supabase
       const { error } = await supabase.from('videos').insert([{ title, description, video_url: finalVideoUrl, thumbnail_url: finalThumbnail, category }]);
       if (error) {
         console.error('Supabase create video error', error);
+        toast({ title: 'Create failed', description: error.message || 'Failed to create video record', variant: 'destructive' });
       } else {
         setTitle(""); setDescription(""); setVideoUrl(""); setThumbnailUrl(""); setCategory("");
         setThumbnailFile(null); setVideoFile(null);
@@ -85,6 +109,8 @@ const Videos = () => {
       }
     } catch (err: unknown) {
       console.error("Upload video error:", err);
+    } finally {
+      setUploadLoading(false);
     }
   };
 
@@ -108,14 +134,26 @@ const Videos = () => {
           <section className="max-w-3xl mx-auto mb-8 p-4 bg-card/60 rounded-md border border-primary/20">
             <h2 className="text-lg font-semibold text-foreground mb-2">Admin: Upload Video</h2>
             <form onSubmit={handleUpload} className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <input className="p-2 bg-input text-foreground rounded" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
-              <input className="p-2 bg-input text-foreground rounded" placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} />
-              <input className="p-2 col-span-2 bg-input text-foreground rounded" placeholder="Video URL (optional if uploading file)" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
-              <input type="file" accept="video/*" onChange={(e) => setVideoFile(e.target.files ? e.target.files[0] : null)} className="col-span-2" />
-              <input className="p-2 col-span-2 bg-input text-foreground rounded" placeholder="Thumbnail URL (optional if uploading file)" value={thumbnailUrl} onChange={(e) => setThumbnailUrl(e.target.value)} />
-              <input type="file" accept="image/*" onChange={(e) => setThumbnailFile(e.target.files ? e.target.files[0] : null)} className="col-span-2" />
+              <input id="video-title" name="title" className="p-2 bg-input text-foreground rounded" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+              <input id="video-category" name="category" className="p-2 bg-input text-foreground rounded" placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} />
+              <input id="video-url" name="video_url" className="p-2 col-span-2 bg-input text-foreground rounded" placeholder="Video URL (optional if uploading file)" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
+              <input id="video-file" name="video_file" type="file" accept="video/*" onChange={(e) => setVideoFile(e.target.files ? e.target.files[0] : null)} className="col-span-2" />
+              <input id="thumbnail-url" name="thumbnail_url" className="p-2 col-span-2 bg-input text-foreground rounded" placeholder="Thumbnail URL (optional if uploading file)" value={thumbnailUrl} onChange={(e) => setThumbnailUrl(e.target.value)} />
+              <input id="thumbnail-file" name="thumbnail_file" type="file" accept="image/*" onChange={(e) => setThumbnailFile(e.target.files ? e.target.files[0] : null)} className="col-span-2" />
               <textarea className="p-2 col-span-2 bg-input text-foreground rounded" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-              <button type="submit" className="col-span-2 bg-primary text-primary-foreground p-2 rounded">Upload</button>
+              <button type="submit" disabled={uploadLoading} className="col-span-2 bg-primary text-primary-foreground p-2 rounded flex items-center justify-center">
+                {uploadLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                    Uploading...
+                  </>
+                ) : (
+                  'Upload'
+                )}
+              </button>
             </form>
           </section>
         )}
@@ -128,6 +166,22 @@ const Videos = () => {
           </p>
         </div>
 
+        {/* Video player dialog (controlled) */}
+        <Dialog open={playerOpen} onOpenChange={setPlayerOpen}>
+          <DialogContent className="max-w-4xl w-full">
+            <DialogTitle>Video player</DialogTitle>
+            <DialogDescription>
+              <div className="mt-4">
+                {playerUrl ? (
+                  <video src={playerUrl} controls autoPlay className="w-full h-auto bg-black" />
+                ) : (
+                  <div className="text-center text-muted-foreground">No video selected</div>
+                )}
+              </div>
+            </DialogDescription>
+          </DialogContent>
+        </Dialog>
+
         {loading ? (
           <div className="text-center text-primary text-lg">Loading videos...</div>
         ) : videos.length === 0 ? (
@@ -139,7 +193,27 @@ const Videos = () => {
             {videos.map((video) => (
               <Card key={video.id} className="bg-gradient-to-br from-card to-muted border-primary/30 hover:border-primary transition-all hover:shadow-[0_0_30px_hsl(var(--cyber-glow)/0.3)] hover:-translate-y-1">
                 <CardHeader>
-                  <div className="relative aspect-video bg-muted/50 rounded-lg overflow-hidden mb-4 group cursor-pointer">
+                  <div
+                    className="relative aspect-video bg-muted/50 rounded-lg overflow-hidden mb-4 group cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      if (video.video_url) {
+                        setPlayerUrl(video.video_url);
+                        setPlayerOpen(true);
+                      } else {
+                        toast({ title: 'No video', description: 'This video has no playable URL.', variant: 'default' });
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        if (video.video_url) {
+                          setPlayerUrl(video.video_url);
+                          setPlayerOpen(true);
+                        }
+                      }
+                    }}
+                  >
                     {video.thumbnail_url ? (
                       <img
                         src={video.thumbnail_url}

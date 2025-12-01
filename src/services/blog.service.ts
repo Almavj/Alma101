@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_URL } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 
 class BlogService {
     private api: ReturnType<typeof axios.create>;
@@ -12,11 +13,19 @@ class BlogService {
             }
         });
 
-        // Add token to requests if available
-        this.api.interceptors.request.use((config) => {
-            const token = localStorage.getItem('token');
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
+        // Add token to requests when available. We fetch the current
+        // session/token from Supabase at request time so we never persist
+        // tokens in browser storage.
+        this.api.interceptors.request.use(async (config) => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                const token = (session as any)?.access_token ?? null;
+                if (token) {
+                    config.headers = config.headers ?? {};
+                    (config.headers as any).Authorization = `Bearer ${token}`;
+                }
+            } catch (err) {
+                // ignore - proceed without auth header
             }
             return config;
         });

@@ -6,16 +6,38 @@ require_once '../config/database.php';
  * This implementation calls Supabase Auth `/auth/v1/user` endpoint with the
  * provided access token. If valid, returns the user's id (sub) string.
  */
-function authenticate() {
-    $headers = getallheaders();
+function getAuthHeader() {
+    // Try multiple methods to retrieve Authorization header in different SAPI setups
+    if (function_exists('getallheaders')) {
+        $headers = getallheaders();
+        foreach ($headers as $key => $value) {
+            if (strtolower($key) === 'authorization') return $value;
+        }
+    }
 
-    if (!isset($headers['Authorization'])) {
+    if (function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+        foreach ($headers as $key => $value) {
+            if (strtolower($key) === 'authorization') return $value;
+        }
+    }
+
+    // Fallback to common $_SERVER entries
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) return $_SERVER['HTTP_AUTHORIZATION'];
+    if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) return $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    return null;
+}
+
+function authenticate() {
+    $authHeader = getAuthHeader();
+
+    if (!$authHeader) {
         http_response_code(401);
         echo json_encode(['message' => 'No token provided']);
         exit();
     }
 
-    $accessToken = str_replace('Bearer ', '', $headers['Authorization']);
+    $accessToken = str_replace('Bearer ', '', $authHeader);
 
     $db = new Database();
     $client = $db->getClient();
@@ -48,15 +70,15 @@ function authenticate() {
  * Return the authenticated user's full data (array) or exit with 401.
  */
 function getAuthenticatedUser() {
-    $headers = getallheaders();
+    $authHeader = getAuthHeader();
 
-    if (!isset($headers['Authorization'])) {
+    if (!$authHeader) {
         http_response_code(401);
         echo json_encode(['message' => 'No token provided']);
         exit();
     }
 
-    $accessToken = str_replace('Bearer ', '', $headers['Authorization']);
+    $accessToken = str_replace('Bearer ', '', $authHeader);
 
     $db = new Database();
     $client = $db->getClient();

@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { isAdmin } from "@/lib/admin";
-import { uploadFile } from "@/lib/storage";
 
 interface Blog {
   id: string;
@@ -13,6 +12,7 @@ interface Blog {
   excerpt: string;
   content: string;
   image_url: string;
+  link?: string;
   created_at: string;
 }
 
@@ -26,7 +26,7 @@ const Blogs = () => {
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [link, setLink] = useState("");
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -52,18 +52,12 @@ const Blogs = () => {
     if (!adminMode) return;
     try {
       let finalImage = imageUrl;
-        if (imageFile) {
-        const imgPath = `blogs/${Date.now()}_${imageFile.name}`;
-        const uploaded = await uploadFile('blogs', imgPath, imageFile);
-        if (uploaded) finalImage = uploaded;
-      }
       // create directly in Supabase
-      const { error } = await supabase.from('blogs').insert([{ title, excerpt, content, image_url: finalImage }]);
+      const { error } = await supabase.from('blogs').insert([{ title, excerpt, content, image_url: finalImage, link }]);
       if (error) {
         console.error('Supabase create blog error', error);
       } else {
-        setTitle(""); setExcerpt(""); setContent(""); setImageUrl("");
-        setImageFile(null);
+        setTitle(""); setExcerpt(""); setContent(""); setImageUrl(""); setLink("");
         const { data } = await supabase.from("blogs").select("*").order("created_at", { ascending: false });
         setBlogs(data || []);
       }
@@ -94,8 +88,8 @@ const Blogs = () => {
             <form onSubmit={handleUpload} className="grid grid-cols-1 gap-2">
               <input className="p-2 bg-input text-foreground rounded" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
               <input className="p-2 bg-input text-foreground rounded" placeholder="Excerpt" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} />
-              <input className="p-2 bg-input text-foreground rounded" placeholder="Image URL (optional if uploading)" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-              <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)} />
+              <input id="blog-image-url" name="image_url" className="p-2 bg-input text-foreground rounded" placeholder="Image URL (optional)" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+              <input id="blog-link" name="link" className="p-2 bg-input text-foreground rounded" placeholder="External link (optional)" value={link} onChange={(e) => setLink(e.target.value)} />
               <textarea className="p-2 bg-input text-foreground rounded" placeholder="Content" value={content} onChange={(e) => setContent(e.target.value)} />
               <button type="submit" className="bg-primary text-primary-foreground p-2 rounded">Publish</button>
             </form>
@@ -140,6 +134,11 @@ const Blogs = () => {
                   <CardDescription className="text-muted-foreground">
                     {blog.excerpt || blog.content.substring(0, 150) + "..."}
                   </CardDescription>
+                  {blog.link && (
+                    <div className="mt-3">
+                      <a href={blog.link} target="_blank" rel="noopener noreferrer" className="text-primary underline">Read full article</a>
+                    </div>
+                  )}
                   {adminMode && (
                     <div className="mt-3">
                       <button className="text-sm text-destructive" onClick={() => handleDelete(blog.id)}>Delete</button>
