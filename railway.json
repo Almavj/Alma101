@@ -5,6 +5,6 @@
     "buildCommand": "cd backend && composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction && cd .. && npm install && npm run build"
   },
   "deploy": {
-    "startCommand": "frankenphp run --config /Caddyfile --adapter caddyfile"
+    "startCommand": "frankenphp"
   }
 }
