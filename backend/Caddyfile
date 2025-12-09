@@ -1,0 +1,5 @@
+:80
+root * /var/www/html
+encode gzip zstd
+php_fastcgi unix//tmp/frankenphp.sock
+file_server
