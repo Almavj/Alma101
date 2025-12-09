@@ -1,5 +1,0 @@
-# Caddyfile
-:80
-root * /app/backend
-try_files {path} /index.php
-file_server
