@@ -1,6 +1,6 @@
 0.0.0.0:{env.PORT}
 
-root * /var/www/html
+root * /var/www/html/backend
 encode gzip zstd
 php_fastcgi unix//tmp/frankenphp.sock
 file_server
