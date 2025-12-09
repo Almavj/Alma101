@@ -44,3 +44,9 @@ node_modules/
 
 # Ensure images dir exists; entrypoint will create/copy Alma101.png at runtime
 RUN mkdir -p /usr/share/nginx/html/images
+.env
+backend/vendor/
+
+# bun/npm lockfiles
+package-lock.json
+bun.lockb
