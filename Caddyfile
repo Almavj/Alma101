@@ -2,5 +2,9 @@
 
 root * /app/backend
 encode gzip zstd
+
+# try_files prevents Caddy from passing a directory path to PHP
+try_files {path} {path}/ /index.php
+
 php
 file_server
