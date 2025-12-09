@@ -34,3 +34,13 @@ logs/
 docker-compose.override.yml
 backend/vendor/
 dist/
+
+# local env and build artifacts
+.env
+backend/vendor/
+dist/
+node_modules/
+.DS_Store
+
+# Ensure images dir exists; entrypoint will create/copy Alma101.png at runtime
+RUN mkdir -p /usr/share/nginx/html/images

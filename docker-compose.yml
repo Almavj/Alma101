@@ -1,4 +1,4 @@
-
+version: "3.8"
 services:
   frontend:
     build:
@@ -8,6 +8,8 @@ services:
         - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
         - VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY}
         - VITE_API_URL=${VITE_API_URL}
+    env_file:
+      - .env
     ports:
       - "3000:80"
     environment:
@@ -28,5 +30,3 @@ services:
       - ./.env:/var/www/html/.env
     environment:
       - PHP_ENV=development
-
-
