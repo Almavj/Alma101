@@ -2,11 +2,13 @@
 root * /app
 encode gzip zstd
 
+# route API requests into the backend and let FrankenPHP handle PHP
 handle_path /api/* {
     root * /app/backend
     php
 }
 
+# SPA/static fallback -> index.html
 try_files {path} {path}/ /index.html
 
 file_server
