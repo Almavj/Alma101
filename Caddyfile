@@ -1,14 +1,12 @@
 :80
-root * /app
+root * /home/alma/Documents/Projects/Alma101-Cybersecurity
 encode gzip zstd
 
-# route API requests into the backend and let FrankenPHP handle PHP
 handle /api/* {
-    root * /app/backend
+    root * /home/alma/Documents/Projects/Alma101-Cybersecurity/backend
     php
 }
 
-# SPA/static fallback -> index.html
 try_files {path} {path}/ /index.html
 
 file_server
