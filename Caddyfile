@@ -3,7 +3,7 @@ root * /app
 encode gzip zstd
 
 # route API requests into the backend and let FrankenPHP handle PHP
-handle_path /api/* {
+handle /api/* {
     root * /app/backend
     php
 }
