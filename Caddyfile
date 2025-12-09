@@ -1,10 +1,20 @@
-:80
-
-root * /app/backend
-encode gzip zstd
-
-# try_files prevents Caddy from passing a directory path to PHP
-try_files {path} {path}/ /index.php
-
-php
-file_server
+# Caddyfile
+:80 {
+    root * /app/backend
+    php_frankenphp
+    file_server
+    encode gzip zstd
+    
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+    
+    # Handle PHP files
+    @php path *.php
+    handle @php {
+        php_frankenphp
+    }
+}
