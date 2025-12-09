@@ -1,12 +1,6 @@
-{
-	php_frankenphp {
-		connect_timeout 2s
-		read_timeout 300s
-	}
-}
+0.0.0.0:{env.PORT}
 
-:{$PORT}
-root * /app
+root * /var/www/html/backend
 encode gzip zstd
+php_fastcgi unix//tmp/frankenphp.sock
 file_server
-php_frankenphp * index.php
