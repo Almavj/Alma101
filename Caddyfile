@@ -1,4 +1,4 @@
-0.0.0.0:{env.PORT}
+:80
 
 root * /app/backend
 encode gzip zstd
