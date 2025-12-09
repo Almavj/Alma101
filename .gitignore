@@ -50,3 +50,7 @@ backend/vendor/
 # bun/npm lockfiles
 package-lock.json
 bun.lockb
+
+# bun/npm lockfiles
+package-lock.json
+bun.lockb
