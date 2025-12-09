@@ -2,7 +2,6 @@
 $vendorAutoload = __DIR__ . '/../vendor/autoload.php';
 if (!file_exists($vendorAutoload)) {
     error_log('[startup] vendor autoload not found: ' . $vendorAutoload);
-    // Respond with 500 and stop to make the failure visible in logs
     http_response_code(500);
     echo json_encode(['error' => 'server_misconfigured', 'detail' => 'vendor/autoload.php missing']);
     exit(1);
@@ -16,10 +15,9 @@ use Dotenv\Dotenv;
 $dotenvPath = __DIR__ . '/..';
 $envFile = $dotenvPath . '/.env';
 
-// Only load .env if it exists. Platforms like Railway/Render inject env vars directly.
+// Only load .env if it exists. Platforms like Railway inject env vars directly.
 if (file_exists($envFile)) {
     $dotenv = Dotenv::createImmutable($dotenvPath);
-    // Use safeLoad so we can provide a clearer error message if .env is missing
     $dotenv->safeLoad();
 } else {
     error_log('[config] .env not found; skipping Dotenv load. Relying on environment variables.');
