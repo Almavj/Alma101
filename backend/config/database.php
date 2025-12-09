@@ -1,5 +1,14 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
+$vendorAutoload = __DIR__ . '/../vendor/autoload.php';
+if (!file_exists($vendorAutoload)) {
+    error_log('[startup] vendor autoload not found: ' . $vendorAutoload);
+    // Respond with 500 and stop to make the failure visible in logs
+    http_response_code(500);
+    echo json_encode(['error' => 'server_misconfigured', 'detail' => 'vendor/autoload.php missing']);
+    exit(1);
+}
+
+require $vendorAutoload;
 
 use GuzzleHttp\Client;
 use Dotenv\Dotenv;

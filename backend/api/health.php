@@ -1,6 +1,5 @@
 <?php
-<?php
-// Minimal health endpoint — must start with <?php and contain only PHP
+// Minimal health endpoint — valid PHP only
 header('Content-Type: application/json');
 echo json_encode([
   'status' => 'ok',
