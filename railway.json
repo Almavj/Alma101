@@ -1,9 +1,10 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS"
+    "builder": "NIXPACKS",
+    "buildCommand": "cd backend && composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction && cd .. && npm install && npm run build"
   },
   "deploy": {
-    "startCommand": "php -S 0.0.0.0:$PORT -t backend"
+    "startCommand": "caddy run --config /Caddyfile --adapter caddyfile"
   }
 }
