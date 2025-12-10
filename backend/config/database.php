@@ -88,3 +88,61 @@ class Database {
         return $this->baseUrl;
     }
 }
+
+// Simple PDO Database helper — reads env vars (DB_CONNECTION, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD)
+// Falls back to a local sqlite file if DB_CONNECTION=sqlite
+class DatabasePdo {
+    private $pdo;
+
+    public function __construct() {
+        $this->loadEnv(__DIR__ . '/../../.env');
+
+        $driver = getenv('DB_CONNECTION') ?: 'mysql';
+        $host   = getenv('DB_HOST') ?: '127.0.0.1';
+        $port   = getenv('DB_PORT') ?: '3306';
+        $name   = getenv('DB_DATABASE') ?: getenv('DB_NAME') ?: 'alma101';
+        $user   = getenv('DB_USERNAME') ?: getenv('DB_USER') ?: 'root';
+        $pass   = getenv('DB_PASSWORD') ?: '';
+
+        try {
+            if ($driver === 'sqlite') {
+                $dbPath = $name ?: __DIR__ . '/../../database.sqlite';
+                $dsn = "sqlite:$dbPath";
+                $this->pdo = new PDO($dsn);
+            } else {
+                $dsn = sprintf('%s:host=%s;port=%s;dbname=%s;charset=utf8mb4', $driver, $host, $port, $name);
+                $opts = [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false,
+                ];
+                $this->pdo = new PDO($dsn, $user, $pass, $opts);
+            }
+        } catch (PDOException $e) {
+            // In production you might log this instead of echoing
+            error_log('Database connection failed: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    public function getConnection() {
+        return $this->pdo;
+    }
+
+    private function loadEnv(string $path) {
+        if (!file_exists($path)) return;
+        foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+            $line = trim($line);
+            if ($line === '' || $line[0] === '#') continue;
+            if (strpos($line, '=') === false) continue;
+            list($k, $v) = explode('=', $line, 2);
+            $k = trim($k);
+            $v = trim($v);
+            // strip quotes
+            $v = trim($v, " \t\n\r\0\x0B\"'");
+            putenv("$k=$v");
+            $_ENV[$k] = $v;
+            $_SERVER[$k] = $v;
+        }
+    }
+}
