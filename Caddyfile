@@ -4,7 +4,7 @@ encode gzip zstd
 
 # API requests
 handle /api/* {
-    root * /home/alma/Documents/Projects/Alma101-Cybersecurity/backend
+    root * ./
     php
     file_server
 }
