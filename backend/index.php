@@ -1,21 +1,10 @@
 <?php
-// Minimal index for API root so web server returns a 200 JSON response
-//header('Content-Type: application/json');
-//http_response_code(200);
-//echo json_encode([
- //   'status' => 'success',
- //   'message' => 'Alma101 API is running'
-//]);
-
-
-// temporary debug — remove after debugging
-ini_set('display_errors','1');
-ini_set('display_startup_errors','1');
-error_reporting(E_ALL);
-
-header('Content-Type: application/json');
+// production-safe API root / health check
+header('Content-Type: application/json; charset=utf-8');
+http_response_code(200);
 echo json_encode([
   'status' => 'ok',
-  'time'   => time(),
-  'port'   => getenv('PORT')
-]);
+  'service' => 'Alma101 API',
+  'time' => time(),
+  'port' => getenv('PORT') ?: null
+], JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
