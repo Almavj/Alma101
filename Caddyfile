@@ -2,11 +2,15 @@
 root * /home/alma/Documents/Projects/Alma101-Cybersecurity
 encode gzip zstd
 
+# API requests
 handle /api/* {
     root * /home/alma/Documents/Projects/Alma101-Cybersecurity/backend
     php
+    file_server
 }
 
-try_files {path} {path}/ /index.html
-
-file_server
+# Everything else - SPA
+handle {
+    try_files {path} {path}/ /index.html
+    file_server
+}
