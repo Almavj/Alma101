@@ -1,6 +1,5 @@
-
 :80
-root * /srv/app/dist
+root * ./dist
 encode gzip zstd
 
 # API requests — proxy /api/* to backend host set via BACKEND_URL env var
