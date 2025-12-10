@@ -7,7 +7,6 @@ DIST_DIR="$ROOT_DIR/dist"
 # Build if dist is missing (Railway may not run build step reliably)
 if [ ! -d "$DIST_DIR" ] || [ -z "$(ls -A "$DIST_DIR" 2>/dev/null || true)" ]; then
   echo "dist missing or empty — running build"
-  # install deps and build
   npm ci
   npm run build
 fi
@@ -22,7 +21,6 @@ window.__ENV = {
 };
 EOF
 
-# start Caddy if installed, otherwise run container (use $PORT if set)
 HOST_PORT="${PORT:-80}"
 
 if command -v caddy >/dev/null 2>&1; then
@@ -31,9 +29,10 @@ elif command -v docker >/dev/null 2>&1; then
   echo "caddy binary not found — launching caddy:2 container on host port ${HOST_PORT}"
   exec docker run --rm -p "${HOST_PORT}:80" \
     -v "$DIST_DIR":/srv/app/dist \
-    -v "$ROOT_DIR/Caddyfile":/Caddyfile \
-    caddy:2 caddy run --config ./Caddyfile --adapter caddyfile
+    -v "$ROOT_DIR/Caddyfile":/srv/app/Caddyfile \
+    -w /srv/app \
+    caddy:2 caddy run --config /srv/app/Caddyfile --adapter caddyfile
 else
-  echo "ERROR: neither 'caddy' nor 'docker' available. Install one or configure Railway to provide Caddy."
+  echo "ERROR: neither 'caddy' nor 'docker' available. Install one or use Railway."
   exit 1
 fi
