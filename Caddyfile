@@ -1,12 +1,11 @@
+
 :80
 root * ./
 encode gzip zstd
 
-# API requests — strip the /api prefix and serve from ./backend
-handle_path /api/* {
-    root * ./backend
-    php
-    file_server
+# API requests — proxy /api/* to backend container (do not try to run php here)
+handle /api/* {
+    reverse_proxy 127.0.0.1:8000
 }
 
 # Everything else - SPA
