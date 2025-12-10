@@ -2,13 +2,9 @@
 root * ./
 encode gzip zstd
 
-# API requests
-handle /api/* {
-    # Move the request to the backend directory
-    rewrite * /backend{path}
-    
-    # Now serve from the project root
-    root * ./
+# API requests — strip the /api prefix and serve from ./backend
+handle_path /api/* {
+    root * ./backend
     php
     file_server
 }
