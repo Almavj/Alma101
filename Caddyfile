@@ -2,9 +2,22 @@
 root * ./
 encode gzip zstd
 
-# API requests
+# API requests - Serve from backend directory
 handle /api/* {
-    root * ./
+    # CRITICAL: Set root to the backend directory
+    root * ./backend
+    
+    # Remove the /api prefix from the path before looking for files
+    @apiPath {
+        path_regexp ^/api/(.*)
+    }
+    handle @apiPath {
+        rewrite * /{re.path.1}
+        php
+        file_server
+    }
+    
+    # Fallback for any other /api/* requests
     php
     file_server
 }
