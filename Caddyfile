@@ -1,5 +1,5 @@
 :80
-root * /home/alma/Documents/Projects/Alma101-Cybersecurity
+root * ./
 encode gzip zstd
 
 # API requests
