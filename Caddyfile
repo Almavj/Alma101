@@ -2,12 +2,10 @@
 root * ./dist
 encode gzip zstd
 
-# API requests — proxy /api/* to backend host set via BACKEND_URL env var
 handle /api/* {
     reverse_proxy {env.BACKEND_URL}
 }
 
-# Everything else - SPA
 handle {
     try_files {path} {path}/ /index.html
     file_server

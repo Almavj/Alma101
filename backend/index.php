@@ -1,20 +1,37 @@
 <?php
-// DEBUG router - remove after testing
+// Serve React SPA from ../dist when available, otherwise return API health JSON.
+
+$project_root = realpath(__DIR__ . '/..');
+$dist_path = $project_root . '/dist';
+$spa_index = $dist_path . '/index.html';
+
 $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 
-header('Content-Type: application/json');
+// If request targets /api/*, return API 404 (router handles real API files)
+if (strpos($uri, '/api/') === 0) {
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(404);
+    echo json_encode(['error' => 'API endpoint not found']);
+    exit;
+}
+
+// If SPA exists and the request expects HTML, serve it
+$accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+$request_is_html = $uri === '/' || stripos($accept, 'text/html') !== false;
+
+if ($request_is_html && file_exists($spa_index) && is_file($spa_index)) {
+    header('Content-Type: text/html; charset=utf-8');
+    readfile($spa_index);
+    exit;
+}
+
+// Fallback: API health JSON
+header('Content-Type: application/json; charset=utf-8');
+http_response_code(200);
 echo json_encode([
-    'debug' => true,
-    'uri' => $uri,
-    'cwd' => getcwd(),
-    '__DIR__' => __DIR__,
-    'project_root' => realpath(__DIR__ . '/..'),
-    'dist_exists' => file_exists(realpath(__DIR__ . '/..') . '/dist'),
-    'dist_contents' => file_exists(realpath(__DIR__ . '/..') . '/dist') ? 
-        scandir(realpath(__DIR__ . '/..') . '/dist') : 'not found',
-    'api_login_exists' => file_exists(__DIR__ . '/api/login.php'),
-    'env' => [
-        'PORT' => getenv('PORT'),
-        'RAILWAY_ENVIRONMENT' => getenv('RAILWAY_ENVIRONMENT'),
-    ]
-]);
+  'status' => 'ok',
+  'service' => 'Alma101 API',
+  'time' => time(),
+  'port' => getenv('PORT') ?: null
+], JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT);
+?>
