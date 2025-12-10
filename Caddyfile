@@ -1,11 +1,10 @@
-
 :80
-root * ./
+root * ./dist
 encode gzip zstd
 
-# API requests — proxy /api/* to backend container (do not try to run php here)
+# API requests — proxy /api/* to backend host set via BACKEND_URL env var
 handle /api/* {
-    reverse_proxy 127.0.0.1:8000
+    reverse_proxy {env.BACKEND_URL}
 }
 
 # Everything else - SPA
