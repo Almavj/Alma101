@@ -1,18 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DIST_DIR="$ROOT_DIR/dist"
 
-# Build if dist is missing (Railway may not run build step reliably)
+echo "START: $(date) - running start.sh in $ROOT_DIR"
+
+# Build if dist missing or empty
 if [ ! -d "$DIST_DIR" ] || [ -z "$(ls -A "$DIST_DIR" 2>/dev/null || true)" ]; then
-  echo "dist missing or empty — running build"
+  echo "dist missing or empty — installing and building"
   npm ci
   npm run build
 fi
 
 mkdir -p "$DIST_DIR"
 
+# generate runtime env for the browser
 cat > "$DIST_DIR/env-config.js" <<EOF
 window.__ENV = {
   API_URL: "${VITE_API_URL:-/api}",
@@ -21,18 +23,9 @@ window.__ENV = {
 };
 EOF
 
-HOST_PORT="${PORT:-80}"
+echo "env-config.js generated:"
+cat "$DIST_DIR/env-config.js"
 
-if command -v caddy >/dev/null 2>&1; then
-  exec caddy run --config /Caddyfile --adapter caddyfile
-elif command -v docker >/dev/null 2>&1; then
-  echo "caddy binary not found — launching caddy:2 container on host port ${HOST_PORT}"
-  exec docker run --rm -p "${HOST_PORT}:80" \
-    -v "$DIST_DIR":/srv/app/dist \
-    -v "$ROOT_DIR/Caddyfile":/srv/app/Caddyfile \
-    -w /srv/app \
-    caddy:2 caddy run --config /srv/app/Caddyfile --adapter caddyfile
-else
-  echo "ERROR: neither 'caddy' nor 'docker' available. Install one or use Railway."
-  exit 1
-fi
+# run caddy (Railway provides caddy in logs)
+echo "Starting Caddy..."
+exec caddy run --config /Caddyfile --adapter caddyfile
