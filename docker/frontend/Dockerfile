@@ -24,5 +24,9 @@ RUN mkdir -p /usr/share/nginx/html/images
 COPY docker/frontend/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Render sets PORT env var (default 10000); nginx listens on 80 internally,
+# entrypoint will rewrite the listen directive if PORT != 80
+ENV PORT=80
+
 EXPOSE 80
 ENTRYPOINT ["/entrypoint.sh"]

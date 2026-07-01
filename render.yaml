@@ -6,8 +6,6 @@ services:
     env: docker
     plan: standard
     dockerfilePath: docker/frontend/Dockerfile
-    buildCommand: npm ci && npm run build
-    startCommand: nginx -g 'daemon off;'
     envVars:
       - key: VITE_BASE_PATH
         value: /
