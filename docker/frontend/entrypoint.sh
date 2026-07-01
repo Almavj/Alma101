@@ -27,5 +27,13 @@ window.__ENV__ = {
 };
 JS
 
+# Inject env-config.js into <head> of index.html BEFORE the module script
+# so window.__ENV__ is available when the app bundle runs
+if ! grep -q 'env-config.js' /usr/share/nginx/html/index.html 2>/dev/null; then
+  sed -i 's|</head>|    <script src="/env-config.js"></script>\n  </head>|' /usr/share/nginx/html/index.html
+fi
+# Remove any env-config.js script from <body> (should only be in <head>)
+sed -i '/<body>/,/<\/body>/{/<script src="\/env-config.js"><\/script>/d;}' /usr/share/nginx/html/index.html
+
 # Start nginx
 exec nginx -g 'daemon off;'
