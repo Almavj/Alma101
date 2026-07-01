@@ -23,8 +23,6 @@ services:
     envVars:
       - key: SUPABASE_URL
         value: https://zwepbokslsmixrquuzgy.supabase.co
-      - key: SUPABASE_SERVICE_ROLE_KEY
-        scope: PRIVATE
       - key: SUPABASE_ANON_KEY
         value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZXBib2tzbHNtaXhycXV1emd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MTE1NDYsImV4cCI6MjA5NTE4NzU0Nn0.z45xb4pJvRROKi3a2QyHlfHTyOCoZpNrTjN_WiU5vys
       - key: SUPABASE_ADMIN_EMAIL
@@ -41,8 +39,6 @@ services:
         value: smtp.gmail.com
       - key: EMAIL_SMTP_USER
         value: machariaallan881@gmail.com
-      - key: EMAIL_SMTP_PASS
-        scope: PRIVATE
       - key: EMAIL_SMTP_PORT
         value: "587"
       - key: EMAIL_SMTP_SECURE
