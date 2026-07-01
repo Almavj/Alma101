@@ -2,7 +2,6 @@
 services:
   - type: web
     name: alma101-frontend
-    root: .
     env: docker
     plan: standard
     dockerfilePath: docker/frontend/Dockerfile
