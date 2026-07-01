@@ -31,12 +31,13 @@ if ! grep -q 'env-config.js' /usr/share/nginx/html/index.html 2>/dev/null; then
 fi
 sed -i '/<body>/,/<\/body>/{/<script src="\/env-config.js"><\/script>/d;}' /usr/share/nginx/html/index.html
 
+# Configure backend proxy URL (default to same-origin /api)
+BACKEND_URL="${BACKEND_URL:-http://alma101-backend.onrender.com}"
+sed -i "s|__BACKEND_URL__|${BACKEND_URL}|g" /etc/nginx/nginx.conf
+
 # Handle Render's PORT env var (default 80)
 if [ -n "$PORT" ] && [ "$PORT" != "80" ]; then
-  sed -i "s/listen 80;/listen ${PORT};/g" /etc/nginx/conf.d/default.conf
-  EXPOSE_PORT=$PORT
-else
-  EXPOSE_PORT=80
+  sed -i "s/listen 80;/listen ${PORT};/g" /etc/nginx/nginx.conf
 fi
 
 # Start nginx

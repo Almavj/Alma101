@@ -7,7 +7,7 @@ RUN npm install
 
 # Copy source and build
 COPY . .
-RUN VITE_SUPABASE_URL='' VITE_SUPABASE_PUBLISHABLE_KEY='' npm run build
+RUN VITE_SUPABASE_URL='' VITE_SUPABASE_PUBLISHABLE_KEY='' VITE_API_URL='' npm run build
 
 FROM nginx:stable-alpine
 
