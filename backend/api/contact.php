@@ -46,7 +46,7 @@ try {
 
 // send email to admin
 try {
-    $adminEmail = $_ENV['SUPABASE_ADMIN_EMAIL'] ?? 'machariaallan881@gmail.com';
+    $adminEmail = $_ENV['SUPABASE_ADMIN_EMAIL'] ?? '';
     $mailer = new Services\EmailService();
     $html = "<h2>New Contact Message</h2>";
     $html .= "<p><strong>From:</strong> " . htmlspecialchars($name) . " (" . htmlspecialchars($email) . ")</p>";

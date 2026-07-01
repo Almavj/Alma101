@@ -8,8 +8,9 @@ import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect } from 'react';
 
+const RUNTIME_ENV = typeof window !== 'undefined' ? (window as any).__ENV__ || {} : {};
 const DEFAULT_API = `${window.location.protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}/api`;
-const API_URL = import.meta.env.VITE_API_URL || DEFAULT_API;
+const API_URL = (import.meta.env as any).VITE_API_URL || RUNTIME_ENV.VITE_API_URL || DEFAULT_API;
 
 const ResetPassword: React.FC = () => {
   const [searchParams] = useSearchParams();

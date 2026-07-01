@@ -4,19 +4,29 @@ services:
     name: alma101-frontend
     root: .
     env: docker
-    plan: free
+    plan: standard
     dockerfilePath: docker/frontend/Dockerfile
     buildCommand: npm ci && npm run build
     startCommand: nginx -g 'daemon off;'
     envVars:
       - key: VITE_BASE_PATH
-        value: /Alma101-Cybersecurity/ # adjust if deploying to repo subpath
+        value: /
+      - key: VITE_SUPABASE_URL
+        syncFromPostgres: false
+      - key: VITE_SUPABASE_PUBLISHABLE_KEY
+        syncFromPostgres: false
+      - key: VITE_API_URL
+        value: /api
+      - key: VITE_SUPABASE_ADMIN_EMAIL
+        syncFromPostgres: false
+      - key: VITE_SITE_URL
+        syncFromPostgres: false
 
   - type: web
     name: alma101-backend
     root: .
     env: docker
-    plan: free
+    plan: standard
     dockerfilePath: docker/backend/Dockerfile
     buildCommand: composer install --no-dev --no-interaction --prefer-dist -o
     startCommand: apache2-foreground
@@ -27,5 +37,25 @@ services:
         scope: PRIVATE
       - key: SUPABASE_ANON_KEY
         scope: PRIVATE
+      - key: SUPABASE_ADMIN_EMAIL
+        scope: PRIVATE
+      - key: CORS_ALLOWED_ORIGINS
+        scope: PRIVATE
+      - key: SITE_URL
+        scope: PRIVATE
+      - key: SITE_DOMAIN
+        scope: PRIVATE
+      - key: EMAIL_FROM
+        scope: PRIVATE
+      - key: EMAIL_SMTP_HOST
+        scope: PRIVATE
+      - key: EMAIL_SMTP_USER
+        scope: PRIVATE
+      - key: EMAIL_SMTP_PASS
+        scope: PRIVATE
+      - key: EMAIL_SMTP_PORT
+        value: "587"
+      - key: EMAIL_SMTP_SECURE
+        value: tls
       - key: SENDGRID_API_KEY
         scope: PRIVATE

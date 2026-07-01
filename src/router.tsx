@@ -8,6 +8,7 @@ import Writeup from './pages/Writeup';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
 import ResetPassword from './pages/ResetPassword';
+import ChangePassword from './pages/ChangePassword';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -24,6 +25,10 @@ export const router = createBrowserRouter([
   {
     path: '/reset-password',
     element: <ErrorBoundary><ResetPassword /></ErrorBoundary>,
+  },
+  {
+    path: '/change-password',
+    element: <ProtectedRoute><ChangePassword /></ProtectedRoute>,
   },
   {
     path: '/contact',

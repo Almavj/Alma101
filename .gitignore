@@ -1,12 +1,14 @@
 # Dependencies
 /vendor/
 /node_modules/
+/backend/vendor/
 
 # Environment files
 .env
 .env.local
 .env.backup
 .env*.local
+backend/.env
 
 # Composer
 composer.lock
@@ -14,7 +16,6 @@ composer.lock
 # Test files
 test_*.php
 quick_test.php
-*test*.php
 
 # IDE
 .vscode/
@@ -30,27 +31,13 @@ Thumbs.db
 *.log
 logs/
 
-# Docker (if applicable)
+# Docker
 docker-compose.override.yml
-backend/vendor/
+
+# Build output
 dist/
 
-# local env and build artifacts
-.env
-backend/vendor/
-dist/
-node_modules/
-.DS_Store
-
-# Ensure images dir exists; entrypoint will create/copy Alma101.png at runtime
-RUN mkdir -p /usr/share/nginx/html/images
-.env
-backend/vendor/
-
-# bun/npm lockfiles
+# Lockfiles
 package-lock.json
 bun.lockb
-
-# bun/npm lockfiles
-package-lock.json
-bun.lockb
+bun.lock

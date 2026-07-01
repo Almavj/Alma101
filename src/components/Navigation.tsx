@@ -61,9 +61,14 @@ export const Navigation = () => {
             </Link>
             
             {user ? (
-              <Button onClick={handleLogout} variant="outline" className="border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground">
-                Logout
-              </Button>
+              <>
+                <Link to="/change-password" className="text-foreground hover:text-primary transition-colors font-medium">
+                  Change Password
+                </Link>
+                <Button onClick={handleLogout} variant="outline" className="border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground">
+                  Logout
+                </Button>
+              </>
             ) : (
               <Button asChild className="bg-primary text-primary-foreground hover:shadow-[0_0_20px_hsl(var(--cyber-glow))]">
                 <Link to="/auth">Log In</Link>
@@ -101,9 +106,14 @@ export const Navigation = () => {
             {/* Forgot-password flow is available on the login page (/auth) via the "Forgot password?" control */}
             
             {user ? (
-              <Button onClick={handleLogout} variant="outline" className="border-primary text-primary">
-                Logout
-              </Button>
+              <>
+                <Link to="/change-password" className="text-foreground hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>
+                  Change Password
+                </Link>
+                <Button onClick={handleLogout} variant="outline" className="border-primary text-primary">
+                  Logout
+                </Button>
+              </>
             ) : (
               <Button asChild>
                 <Link to="/auth" onClick={() => setIsMenuOpen(false)}>Log In</Link>

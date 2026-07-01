@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { isAdmin } from "./admin";
 
 /**
  * Upload a file to Supabase Storage and return a public URL.
@@ -12,11 +13,10 @@ export async function uploadFile(bucket: string, path: string, file: File): Prom
     console.debug('[uploadFile] attempting upload', { bucket, path, filename: file.name, size: file.size });
 
     // Ensure we have a valid session. If this is the 'videos' bucket we require
-    // the fixed admin email to be logged in (prevent non-admin client uploads).
+    // admin privileges to be logged in (prevent non-admin client uploads).
     const { data: { session } } = await supabase.auth.getSession();
     console.debug('[uploadFile] supabase session present?', !!session);
 
-    const ADMIN_EMAIL = 'machariaallan881@gmail.com';
     if (bucket === 'videos') {
       if (!session) {
         console.error('[uploadFile] upload blocked: no authenticated session');
@@ -24,7 +24,7 @@ export async function uploadFile(bucket: string, path: string, file: File): Prom
       }
       const email = (session as any)?.user?.email ?? null;
       console.debug('[uploadFile] user email:', email);
-      if (email !== ADMIN_EMAIL) {
+      if (!isAdmin(email)) {
         console.error('[uploadFile] upload blocked: user is not admin', { email });
         throw new Error('Admin privileges required to upload to the videos bucket.');
       }

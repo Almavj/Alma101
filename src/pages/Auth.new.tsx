@@ -39,6 +39,7 @@ const Auth = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isResetFlow, setIsResetFlow] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -79,9 +80,8 @@ const Auth = () => {
 
       if (error) throw error;
 
-      toast.success('If an account exists, a password reset email was sent.');
-      setIsResetFlow(false);
-      setPassword('');
+      toast.success('Password reset email sent. Check your inbox.');
+      setResetEmailSent(true);
     } catch (error) {
       console.error('Reset error:', error);
       toast.error(error instanceof Error ? error.message : 'An error occurred');
@@ -190,68 +190,89 @@ const Auth = () => {
               </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={isResetFlow ? handleResetPassword : handleAuth} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-foreground">Email</Label>
-                <Input
-                  id="email"
-                  ref={emailRef}
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  required
-                  className="bg-input border-border text-foreground"
-                />
+            {resetEmailSent ? (
+              <div className="text-center space-y-4">
+                <p className="text-foreground text-lg">Check your email</p>
+                <p className="text-muted-foreground">
+                  We sent a password reset link to <strong>{email}</strong>.
+                  Click the link in the email to set a new password.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full border-primary/50 text-primary"
+                  onClick={() => {
+                    setResetEmailSent(false);
+                    setIsResetFlow(false);
+                    setEmail('');
+                  }}
+                >
+                  Back to login
+                </Button>
               </div>
-              {isResetFlow ? null : (
-                <>
-                  {!isLogin && (
-                    <div className="space-y-2">
-                      <Label htmlFor="username" className="text-foreground">Username</Label>
-                      <Input
-                        id="username"
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Choose a username"
-                        required
-                        className="bg-input border-border text-foreground"
-                      />
-                    </div>
-                  )}
-
-                  <div className="space-y-2 relative">
-                    <Label htmlFor="password" className="text-foreground">Password</Label>
-                    <Input
-                      id="password"
-                      ref={passwordRef}
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      className="bg-input border-border text-foreground pr-10"
-                    />
-                    <button
-                      type="button"
-                      onMouseDown={() => setShowPassword(true)}
-                      onMouseUp={() => setShowPassword(false)}
-                      onMouseLeave={() => setShowPassword(false)}
-                      onTouchStart={() => setShowPassword(true)}
-                      onTouchEnd={() => setShowPassword(false)}
-                      aria-label="Show password"
-                      className="absolute right-2 top-9 p-1 text-muted-foreground"
-                    >
-                      {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-                    </button>
+            ) : (
+            <>
+              <form onSubmit={isResetFlow ? handleResetPassword : handleAuth} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-foreground">Email</Label>
+                  <Input
+                    id="email"
+                    ref={emailRef}
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    required
+                    className="bg-input border-border text-foreground"
+                  />
+                </div>
+                {isResetFlow ? null : (
+                  <>
                     {!isLogin && (
-                      <p className="text-xs text-muted-foreground mt-1">Password must be at least 8 characters and include uppercase, lowercase, a number and a symbol.</p>
+                      <div className="space-y-2">
+                        <Label htmlFor="username" className="text-foreground">Username</Label>
+                        <Input
+                          id="username"
+                          type="text"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          placeholder="Choose a username"
+                          required
+                          className="bg-input border-border text-foreground"
+                        />
+                      </div>
                     )}
-                  </div>
 
-                  {!isLogin && (
                     <div className="space-y-2 relative">
+                      <Label htmlFor="password" className="text-foreground">Password</Label>
+                      <Input
+                        id="password"
+                        ref={passwordRef}
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        className="bg-input border-border text-foreground pr-10"
+                      />
+                      <button
+                        type="button"
+                        onMouseDown={() => setShowPassword(true)}
+                        onMouseUp={() => setShowPassword(false)}
+                        onMouseLeave={() => setShowPassword(false)}
+                        onTouchStart={() => setShowPassword(true)}
+                        onTouchEnd={() => setShowPassword(false)}
+                        aria-label="Show password"
+                        className="absolute right-2 top-9 p-1 text-muted-foreground"
+                      >
+                        {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                      </button>
+                      {!isLogin && (
+                        <p className="text-xs text-muted-foreground mt-1">Password must be at least 8 characters and include uppercase, lowercase, a number and a symbol.</p>
+                      )}
+                    </div>
+
+                    {!isLogin && (
+                      <div className="space-y-2 relative">
                         <Label htmlFor="confirmPassword" className="text-foreground">Confirm Password</Label>
                         <Input
                           id="confirmPassword"
@@ -276,56 +297,58 @@ const Auth = () => {
                           {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                         </button>
                       </div>
-                  )}
-                </>
-              )}
-              <Button
-                type="submit"
-                className="w-full bg-primary text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--cyber-glow))]"
-                disabled={loading}
-              >
-                {loading ? 'Processing...' : (isResetFlow ? 'Send Reset Email' : (isLogin ? 'Sign In' : 'Sign Up'))}
-              </Button>
-            </form>
-            <div className="mt-4 text-center">
-              {isResetFlow ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsResetFlow(false);
-                    setPassword('');
-                  }}
-                  className="text-primary hover:underline"
+                    )}
+                  </>
+                )}
+                <Button
+                  type="submit"
+                  className="w-full bg-primary text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--cyber-glow))]"
+                  disabled={loading}
                 >
-                  Back to login
-                </button>
-              ) : (
-                <>
+                  {loading ? 'Processing...' : (isResetFlow ? 'Send Reset Email' : (isLogin ? 'Sign In' : 'Sign Up'))}
+                </Button>
+              </form>
+              <div className="mt-4 text-center">
+                {isResetFlow ? (
                   <button
                     type="button"
                     onClick={() => {
-                      setIsLogin(!isLogin);
-                      resetForm();
+                      setIsResetFlow(false);
+                      setPassword('');
                     }}
                     className="text-primary hover:underline"
                   >
-                    {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                    Back to login
                   </button>
-                  {isLogin && (
+                ) : (
+                  <>
                     <button
                       type="button"
                       onClick={() => {
+                        setIsLogin(!isLogin);
+                        resetForm();
+                      }}
+                      className="text-primary hover:underline"
+                    >
+                      {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                    </button>
+                    {isLogin && (
+                      <button
+                        type="button"
+                        onClick={() => {
                           setIsResetFlow(true);
                           resetForm();
                         }}
-                      className="block mx-auto mt-2 text-primary hover:underline"
-                    >
-                      Forgot password?
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
+                        className="block mx-auto mt-2 text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            </>
+          )}
           </CardContent>
         </Card>
       </div>

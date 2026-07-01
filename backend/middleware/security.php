@@ -2,6 +2,24 @@
 // Centralized security headers and CORS handling for backend API endpoints.
 // Include and call set_security_headers() at the top of API files.
 
+// Load .env early so CORS_ALLOWED_ORIGINS is available
+$envFile = dirname(__DIR__) . '/.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#') continue;
+        if (strpos($line, '=') === false) continue;
+        list($k, $v) = explode('=', $line, 2);
+        $k = trim($k);
+        $v = trim(trim($v), "\"'");
+        if (!getenv($k)) {
+            putenv("$k=$v");
+            $_ENV[$k] = $v;
+        }
+    }
+}
+
 function set_security_headers() {
     // Content type default for API responses
     header('Content-Type: application/json; charset=UTF-8');

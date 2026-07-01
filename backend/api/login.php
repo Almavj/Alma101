@@ -58,11 +58,11 @@ try {
         // Determine admin flag. Prefer checking explicit role/metadata via
         // isUserAdminFromUser() (if available), otherwise fall back to email compare.
         $userData = $body['user'] ?? [];
+        $userEmail = $userData['email'] ?? null;
         $isAdmin = false;
         if (function_exists('isUserAdminFromUser')) {
             $isAdmin = isUserAdminFromUser($userData);
         } else {
-            $userEmail = $userData['email'] ?? null;
             $adminEmail = getenv('SUPABASE_ADMIN_EMAIL') ?: ($_ENV['SUPABASE_ADMIN_EMAIL'] ?? '');
             if ($userEmail && $adminEmail && strcasecmp($userEmail, $adminEmail) === 0) {
                 $isAdmin = true;

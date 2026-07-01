@@ -30,7 +30,7 @@ try {
     $client = $db->getClient();
 
     // Use Supabase's recover endpoint to send a password reset email.
-    $redirectTo = $data['redirect_to'] ?? 'https://alma101.vercel.app/auth';
+    $redirectTo = $data['redirect_to'] ?? ($_ENV['SITE_URL'] ?? 'https://yourdomain.com') . '/reset-password';
 
     $resp = $client->post('/auth/v1/recover', [
         'json' => [
@@ -46,20 +46,22 @@ try {
 
     $body = json_decode((string)$resp->getBody(), true);
 
+    // Always return the same success message regardless of Supabase response
+    // to prevent email enumeration. Log errors for debugging.
     if ($resp->getStatusCode() >= 200 && $resp->getStatusCode() < 300) {
         echo json_encode(['message' => 'If an account exists with this email, you will receive password reset instructions.']);
-        exit();
     } else {
-        error_log('Reset error: ' . print_r($body, true));
-        http_response_code(500);
-        echo json_encode(['error' => 'An error occurred while processing your request.']);
-        exit();
+        error_log('Reset error (' . $resp->getStatusCode() . '): ' . print_r($body, true));
+        // Still return success to the user - don't reveal whether the email exists
+        echo json_encode(['message' => 'If an account exists with this email, you will receive password reset instructions.']);
     }
+    exit();
 
 } catch (Exception $e) {
     error_log("Password reset error: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['error' => 'An error occurred while processing your request.']);
+    // Still return success to the user
+    http_response_code(200);
+    echo json_encode(['message' => 'If an account exists with this email, you will receive password reset instructions.']);
     exit();
 }
 

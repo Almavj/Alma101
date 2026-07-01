@@ -13,7 +13,7 @@ class EmailService {
     public function __construct() {
         $this->mailer = new PHPMailer(true);
         // initialize from env where possible
-        $this->fromEmail = $_ENV['SUPABASE_ADMIN_EMAIL'] ?? ($_ENV['EMAIL_FROM'] ?? 'machariaallan881@gmail.com');
+        $this->fromEmail = $_ENV['EMAIL_FROM'] ?? $_ENV['SUPABASE_ADMIN_EMAIL'] ?? '';
         $this->fromName = $_ENV['EMAIL_FROM_NAME'] ?? 'Alma101';
         $this->configureSMTP();
     }
@@ -53,8 +53,8 @@ class EmailService {
     private function getEmailTemplate($type, $data) {
         // Get the server's domain and protocol
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-        $domain = $_SERVER['HTTP_HOST'] ?? 'localhost:8080';
-        $logo = $protocol . $domain . '/Alma101-security/public/Alma101.jpg';
+        $domain = $_SERVER['HTTP_HOST'] ?? $_ENV['SITE_DOMAIN'] ?? 'yourdomain.com';
+        $logo = $protocol . $domain . '/images/Alma101.png';
         
         $baseTemplate = <<<HTML
         <!DOCTYPE html>
@@ -180,7 +180,7 @@ class EmailService {
             $this->mailer->clearAddresses();
             $this->mailer->addAddress($to);
             $this->mailer->Subject = 'Welcome to Alma101!';
-            $loginUrl = 'https://alma101-cybersecurity.vercel.app/auth'; 
+            $loginUrl = ($_ENV['SITE_URL'] ?? 'https://yourdomain.com') . '/auth'; 
             $this->mailer->Body = $this->getEmailTemplate('welcome', [
                 'username' => $username,
                 'loginUrl' => $loginUrl
