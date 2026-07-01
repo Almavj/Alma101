@@ -14,8 +14,9 @@ FROM nginx:stable-alpine
 # Copy built files
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy nginx config with SPA fallback
-COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+# Replace entire nginx.conf (not just conf.d) to guarantee SPA fallback
+RUN rm -f /etc/nginx/conf.d/default.conf
+COPY docker/frontend/nginx.conf /etc/nginx/nginx.conf
 
 # Ensure images dir exists; entrypoint will create/copy Alma101.png at runtime
 RUN mkdir -p /usr/share/nginx/html/images
