@@ -5,6 +5,9 @@ RUN apt-get update && apt-get install -y libpq-dev unzip \
     && rm -rf /var/lib/apt/lists/*
 RUN a2enmod rewrite
 
+# Allow .htaccess overrides
+RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
+
 # Install composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 

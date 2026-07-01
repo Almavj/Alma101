@@ -1,4 +1,4 @@
-# Render manifest: defines two services (frontend static and backend web service)
+# Render manifest: defines two Docker services
 services:
   - type: web
     name: alma101-frontend
@@ -6,53 +6,44 @@ services:
     plan: standard
     dockerfilePath: docker/frontend/Dockerfile
     envVars:
-      - key: VITE_BASE_PATH
-        value: /
       - key: VITE_SUPABASE_URL
-        syncFromPostgres: false
+        value: https://zwepbokslsmixrquuzgy.supabase.co
       - key: VITE_SUPABASE_PUBLISHABLE_KEY
-        syncFromPostgres: false
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZXBib2tzbHNtaXhycXV1emd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MTE1NDYsImV4cCI6MjA5NTE4NzU0Nn0.z45xb4pJvRROKi3a2QyHlfHTyOCoZpNrTjN_WiU5vys
+      - key: VITE_SUPABASE_ADMIN_EMAIL
+        value: machariaallan881@gmail.com
       - key: VITE_API_URL
         value: /api
-      - key: VITE_SUPABASE_ADMIN_EMAIL
-        syncFromPostgres: false
-      - key: VITE_SITE_URL
-        syncFromPostgres: false
 
   - type: web
     name: alma101-backend
-    root: .
     env: docker
     plan: standard
     dockerfilePath: docker/backend/Dockerfile
-    buildCommand: composer install --no-dev --no-interaction --prefer-dist -o
-    startCommand: apache2-foreground
     envVars:
       - key: SUPABASE_URL
-        scope: PRIVATE
+        value: https://zwepbokslsmixrquuzgy.supabase.co
       - key: SUPABASE_SERVICE_ROLE_KEY
         scope: PRIVATE
       - key: SUPABASE_ANON_KEY
-        scope: PRIVATE
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3ZXBib2tzbHNtaXhycXV1emd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MTE1NDYsImV4cCI6MjA5NTE4NzU0Nn0.z45xb4pJvRROKi3a2QyHlfHTyOCoZpNrTjN_WiU5vys
       - key: SUPABASE_ADMIN_EMAIL
-        scope: PRIVATE
+        value: machariaallan881@gmail.com
       - key: CORS_ALLOWED_ORIGINS
-        scope: PRIVATE
+        value: https://alma101-frontend.onrender.com,https://alma.41m4.me
       - key: SITE_URL
-        scope: PRIVATE
+        value: https://alma.41m4.me
       - key: SITE_DOMAIN
-        scope: PRIVATE
+        value: alma.41m4.me
       - key: EMAIL_FROM
-        scope: PRIVATE
+        value: machariaallan881@gmail.com
       - key: EMAIL_SMTP_HOST
-        scope: PRIVATE
+        value: smtp.gmail.com
       - key: EMAIL_SMTP_USER
-        scope: PRIVATE
+        value: machariaallan881@gmail.com
       - key: EMAIL_SMTP_PASS
         scope: PRIVATE
       - key: EMAIL_SMTP_PORT
         value: "587"
       - key: EMAIL_SMTP_SECURE
         value: tls
-      - key: SENDGRID_API_KEY
-        scope: PRIVATE

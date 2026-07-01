@@ -20,7 +20,7 @@ if (empty($data->email) || empty($data->password)) {
 
 try {
     // Read configuration from environment
-    $supabaseUrl = getenv('SUPABASE_URL') ?: ($_ENV['SUPABASE_URL'] ?? 'https://vmwuglqrafyzrriygzyn.supabase.co');
+    $supabaseUrl = getenv('SUPABASE_URL') ?: ($_ENV['SUPABASE_URL'] ?? 'https://zwepbokslsmixrquuzgy.supabase.co');
     $anonKey = getenv('SUPABASE_ANON_KEY') ?: ($_ENV['SUPABASE_ANON_KEY'] ?? null);
 
     if (empty($anonKey)) {
