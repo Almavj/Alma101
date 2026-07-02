@@ -56,14 +56,14 @@ export async function uploadFile(bucket: string, path: string, file: File): Prom
     const { data: publicData } = supabase.storage.from(bucket).getPublicUrl(data.path);
     console.debug('[uploadFile] upload succeeded', { bucket, path, data, publicData });
 
-    // publicData has shape { publicUrl } in most SDK versions
-    if (publicData) {
-      const pd: any = publicData;
-      if (pd.publicUrl || pd.publicURL) return pd.publicUrl ?? pd.publicURL;
+    // getPublicUrl always returns { publicUrl: string } — use it directly
+    if (publicData?.publicUrl) {
+      return publicData.publicUrl;
     }
 
-    // If public URL could not be constructed, return the stored path as a fallback
-    return data.path ?? null;
+    // Fallback: construct the URL manually from Supabase config
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    return `${supabaseUrl}/storage/v1/object/public/${bucket}/${data.path}`;
   } catch (err) {
     console.error('[uploadFile] Upload exception', err);
     return null;

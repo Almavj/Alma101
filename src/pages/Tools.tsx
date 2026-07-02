@@ -5,8 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink, Trash2, PenSquare, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 import { isAdmin } from "@/lib/admin";
-import { uploadFile } from "@/lib/storage";
 
 interface Tool {
   id: string;
@@ -21,12 +21,13 @@ const Tools = () => {
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminMode, setAdminMode] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [toolUrl, setToolUrl] = useState("");
   const [category, setCategory] = useState("");
-  const [iconFile, setIconFile] = useState<File | null>(null);
 
   useEffect(() => {
     const fetchTools = async () => {
@@ -49,25 +50,25 @@ const Tools = () => {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adminMode) return;
-    let iconUrl = '';
-    if (iconFile) {
-      const path = `tools/${Date.now()}_${iconFile.name}`;
-      const uploaded = await uploadFile('tools', path, iconFile);
-      if (uploaded) iconUrl = uploaded;
-    }
-    const payload: any = { name, description, tool_url: toolUrl, category };
-    if (iconUrl) payload.icon_url = iconUrl;
+    setSubmitting(true);
     try {
+      const payload: any = { name, description, tool_url: toolUrl, category };
       const { error } = await supabase.from('tools').insert([payload]);
-      if (error) console.error('Supabase create tool error', error);
-      else {
-        setName(""); setDescription(""); setToolUrl(""); setCategory(""); setIconFile(null);
+      if (error) {
+        console.error('Supabase create tool error', error);
+        toast.error(error.message);
+      } else {
+        toast.success("Tool added successfully!");
+        setName(""); setDescription(""); setToolUrl(""); setCategory("");
+        setShowForm(false);
         const { data } = await supabase.from("tools").select("*").order("created_at", { ascending: false });
         setTools(data || []);
       }
     } catch (err) {
       console.error('Create tool unexpected error', err);
+      toast.error("Failed to add tool");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -76,8 +77,13 @@ const Tools = () => {
     if (!confirm("Delete this tool?")) return;
     try {
       const { error } = await supabase.from('tools').delete().eq('id', id);
-      if (error) console.error('Supabase delete tool error', error);
-      else setTools((t) => t.filter((x) => x.id !== id));
+      if (error) {
+        console.error('Supabase delete tool error', error);
+        toast.error(error.message);
+      } else {
+        toast.success("Tool deleted");
+        setTools((t) => t.filter((x) => x.id !== id));
+      }
     } catch (err) {
       console.error('Delete tool unexpected error', err);
     }
@@ -88,16 +94,34 @@ const Tools = () => {
       <Navigation />
       <main className="container mx-auto px-4 pt-24 pb-12">
         {adminMode && (
-          <section className="max-w-3xl mx-auto mb-8 p-4 bg-card/60 rounded-md border border-primary/20">
-            <h2 className="text-lg font-semibold text-foreground mb-2">Admin: Add Tool</h2>
-            <form onSubmit={handleUpload} className="grid grid-cols-1 gap-2">
-              <input className="p-2 bg-input text-foreground rounded" placeholder="Tool name" value={name} onChange={(e) => setName(e.target.value)} required />
-              <input className="p-2 bg-input text-foreground rounded" placeholder="Tool URL" value={toolUrl} onChange={(e) => setToolUrl(e.target.value)} />
-              <input className="p-2 bg-input text-foreground rounded" placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} />
-              <input type="file" accept="image/*" onChange={(e) => setIconFile(e.target.files ? e.target.files[0] : null)} />
-              <textarea className="p-2 bg-input text-foreground rounded" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-              <button type="submit" className="bg-primary text-primary-foreground p-2 rounded">Add Tool</button>
-            </form>
+          <section className="max-w-3xl mx-auto mb-8">
+            {!showForm ? (
+              <button
+                onClick={() => setShowForm(true)}
+                className="w-full flex items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-primary/40 bg-card/40 hover:bg-card/70 hover:border-primary/60 transition-all text-primary font-medium"
+              >
+                <PenSquare className="h-5 w-5" />
+                Add New Tool
+              </button>
+            ) : (
+              <form onSubmit={handleUpload} className="bg-card/60 rounded-xl border border-primary/20 p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-foreground">Add Tool</h2>
+                  <button type="button" onClick={() => setShowForm(false)} className="text-muted-foreground hover:text-foreground text-sm">Cancel</button>
+                </div>
+                <input className="w-full p-3 bg-input text-foreground rounded-lg border border-border/50 focus:border-primary focus:outline-none" placeholder="Tool name" value={name} onChange={(e) => setName(e.target.value)} required />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input className="w-full p-3 bg-input text-foreground rounded-lg border border-border/50 focus:border-primary focus:outline-none" placeholder="Tool URL" value={toolUrl} onChange={(e) => setToolUrl(e.target.value)} />
+                  <input className="w-full p-3 bg-input text-foreground rounded-lg border border-border/50 focus:border-primary focus:outline-none" placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} />
+                </div>
+                <textarea className="w-full p-3 bg-input text-foreground rounded-lg border border-border/50 focus:border-primary focus:outline-none" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+                <div className="flex justify-end">
+                  <button type="submit" disabled={submitting} className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
+                    {submitting ? "Adding..." : "Add Tool"}
+                  </button>
+                </div>
+              </form>
+            )}
           </section>
         )}
 
