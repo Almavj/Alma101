@@ -22,6 +22,8 @@ export type Database = {
           excerpt: string | null
           id: string
           image_url: string | null
+          link: string | null
+          published: boolean | null
           title: string
           updated_at: string | null
         }
@@ -32,6 +34,8 @@ export type Database = {
           excerpt?: string | null
           id?: string
           image_url?: string | null
+          link?: string | null
+          published?: boolean | null
           title: string
           updated_at?: string | null
         }
@@ -42,6 +46,8 @@ export type Database = {
           excerpt?: string | null
           id?: string
           image_url?: string | null
+          link?: string | null
+          published?: boolean | null
           title?: string
           updated_at?: string | null
         }
@@ -152,6 +158,39 @@ export type Database = {
           title?: string
           updated_at?: string | null
           video_url?: string
+        }
+        Relationships: []
+      }
+      writeups: {
+        Row: {
+          author_id: string | null
+          created_at: string | null
+          description: string
+          id: string
+          published: boolean | null
+          title: string
+          updated_at: string | null
+          url: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          published?: boolean | null
+          title: string
+          updated_at?: string | null
+          url?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          published?: boolean | null
+          title?: string
+          updated_at?: string | null
+          url?: string | null
         }
         Relationships: []
       }

@@ -1,7 +1,6 @@
 -- =============================================================
 -- Alma101 - Create missing tables, triggers, and RLS policies
 -- Run this in Supabase SQL Editor (Dashboard > SQL Editor)
--- NOTE: The 'writeups' table already exists - DO NOT recreate it
 -- =============================================================
 
 -- 1. Create profiles table
@@ -52,11 +51,11 @@ CREATE TABLE IF NOT EXISTS public.videos (
 
 ALTER TABLE public.videos ENABLE ROW LEVEL SECURITY;
 
+-- Allow anyone (including anonymous) to read videos
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Authenticated users can view videos') THEN
-    CREATE POLICY "Authenticated users can view videos"
+  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Anyone can view videos') THEN
+    CREATE POLICY "Anyone can view videos"
       ON public.videos FOR SELECT
-      TO authenticated
       USING (true);
   END IF;
 END $$;
@@ -77,17 +76,19 @@ CREATE TABLE IF NOT EXISTS public.blogs (
   author_id UUID REFERENCES auth.users(id),
   excerpt TEXT,
   image_url TEXT,
+  link TEXT,
+  published BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 ALTER TABLE public.blogs ENABLE ROW LEVEL SECURITY;
 
+-- Allow anyone (including anonymous) to read blogs
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Authenticated users can view blogs') THEN
-    CREATE POLICY "Authenticated users can view blogs"
+  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Anyone can view blogs') THEN
+    CREATE POLICY "Anyone can view blogs"
       ON public.blogs FOR SELECT
-      TO authenticated
       USING (true);
   END IF;
 END $$;
@@ -113,11 +114,11 @@ CREATE TABLE IF NOT EXISTS public.tools (
 
 ALTER TABLE public.tools ENABLE ROW LEVEL SECURITY;
 
+-- Allow anyone (including anonymous) to read tools
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Authenticated users can view tools') THEN
-    CREATE POLICY "Authenticated users can view tools"
+  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Anyone can view tools') THEN
+    CREATE POLICY "Anyone can view tools"
       ON public.tools FOR SELECT
-      TO authenticated
       USING (true);
   END IF;
 END $$;
@@ -130,7 +131,38 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- 5. Create contact_submissions table
+-- 5. Create writeups table
+CREATE TABLE IF NOT EXISTS public.writeups (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  url TEXT,
+  author_id UUID REFERENCES auth.users(id),
+  published BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE public.writeups ENABLE ROW LEVEL SECURITY;
+
+-- Allow anyone (including anonymous) to read writeups
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Anyone can view writeups') THEN
+    CREATE POLICY "Anyone can view writeups"
+      ON public.writeups FOR SELECT
+      USING (true);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'admins_writeups_full') THEN
+    CREATE POLICY "admins_writeups_full" ON public.writeups
+      FOR ALL
+      USING ((SELECT email FROM auth.users WHERE id = auth.uid()) = 'machariaallan881@gmail.com');
+  END IF;
+END $$;
+
+-- 6. Create contact_submissions table
 CREATE TABLE IF NOT EXISTS public.contact_submissions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
@@ -146,24 +178,6 @@ DO $$ BEGIN
     CREATE POLICY "Anyone can submit contact form"
       ON public.contact_submissions FOR INSERT
       WITH CHECK (true);
-  END IF;
-END $$;
-
--- 6. Add RLS policy for writeups (table already exists, only add missing policy)
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'Authenticated users can view writeups') THEN
-    CREATE POLICY "Authenticated users can view writeups"
-      ON public.writeups FOR SELECT
-      TO authenticated
-      USING (true);
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policy WHERE polname = 'admins_writeups_full') THEN
-    CREATE POLICY "admins_writeups_full" ON public.writeups
-      FOR ALL
-      USING ((SELECT email FROM auth.users WHERE id = auth.uid()) = 'machariaallan881@gmail.com');
   END IF;
 END $$;
 
@@ -218,12 +232,17 @@ CREATE TRIGGER update_blogs_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_writeups_updated_at ON public.writeups;
+CREATE TRIGGER update_writeups_updated_at
+  BEFORE UPDATE ON public.writeups
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
+
 -- 9. Create storage policies for videos bucket
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Authenticated users can view videos storage') THEN
-    CREATE POLICY "Authenticated users can view videos storage"
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Anyone can view videos storage') THEN
+    CREATE POLICY "Anyone can view videos storage"
       ON storage.objects FOR SELECT
-      TO authenticated
       USING (bucket_id = 'videos');
   END IF;
 END $$;
@@ -254,10 +273,9 @@ END $$;
 
 -- 10. Create storage policies for tools bucket
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Authenticated users can view tools storage') THEN
-    CREATE POLICY "Authenticated users can view tools storage"
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Anyone can view tools storage') THEN
+    CREATE POLICY "Anyone can view tools storage"
       ON storage.objects FOR SELECT
-      TO authenticated
       USING (bucket_id = 'tools');
   END IF;
 END $$;

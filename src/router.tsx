@@ -3,8 +3,11 @@ import Index from './pages/Index';
 import Auth from './pages/Auth.new';
 import Videos from './pages/Videos';
 import Blogs from './pages/Blogs';
+import BlogDetail from './pages/BlogDetail';
 import Tools from './pages/Tools';
+import ToolDetail from './pages/ToolDetail';
 import Writeup from './pages/Writeup';
+import WriteupDetail from './pages/WriteupDetail';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
 import ResetPassword from './pages/ResetPassword';
@@ -43,12 +46,24 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute><Blogs /></ProtectedRoute>,
   },
   {
+    path: '/blogs/:id',
+    element: <ProtectedRoute><BlogDetail /></ProtectedRoute>,
+  },
+  {
     path: '/tools',
     element: <ProtectedRoute><Tools /></ProtectedRoute>,
   },
   {
+    path: '/tools/:id',
+    element: <ProtectedRoute><ToolDetail /></ProtectedRoute>,
+  },
+  {
     path: '/writeup',
     element: <ProtectedRoute><Writeup /></ProtectedRoute>,
+  },
+  {
+    path: '/writeup/:id',
+    element: <ProtectedRoute><WriteupDetail /></ProtectedRoute>,
   },
   {
     path: '*',

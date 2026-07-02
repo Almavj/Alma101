@@ -109,3 +109,37 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* TipTap Editor Styles */
+.tiptap {
+  outline: none;
+  min-height: 200px;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  color: hsl(var(--muted-foreground));
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.tiptap h1 { @apply text-3xl font-bold mt-6 mb-3; }
+.tiptap h2 { @apply text-2xl font-semibold mt-5 mb-2; }
+.tiptap h3 { @apply text-xl font-semibold mt-4 mb-2; }
+.tiptap p { @apply mb-3 leading-relaxed; }
+.tiptap ul { @apply list-disc pl-6 mb-3; }
+.tiptap ol { @apply list-decimal pl-6 mb-3; }
+.tiptap li { @apply mb-1; }
+.tiptap blockquote {
+  @apply border-l-4 border-primary/40 pl-4 italic text-muted-foreground my-4;
+}
+.tiptap a { @apply text-primary underline cursor-pointer; }
+.tiptap img { @apply max-w-full rounded-lg my-4; }
+.tiptap hr { @apply border-border my-6; }
+.tiptap mark { @apply bg-yellow-500/30 rounded px-0.5; }
+.tiptap code { @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono; }
+.tiptap pre {
+  @apply bg-muted rounded-lg p-4 my-4 overflow-x-auto;
+}
+.tiptap pre code { @apply bg-transparent p-0; }

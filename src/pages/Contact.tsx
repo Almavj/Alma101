@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Mail, MessageSquare } from "lucide-react";
+import { Mail, MessageSquare, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
@@ -20,6 +21,7 @@ const Contact = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,24 +35,22 @@ const Contact = () => {
     setLoading(true);
 
     try {
-      const res = await fetch('/backend/api/contact.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, message }),
-      });
+      const { error } = await supabase
+        .from("contact_submissions")
+        .insert([{ name, email, message }]);
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        console.error('Contact API error', body);
-        throw new Error('Contact API failure');
+      if (error) {
+        console.error("Supabase contact insert error", error);
+        toast.error("Failed to send message. Please try again.");
+      } else {
+        setSent(true);
+        toast.success("Message sent successfully!");
+        setName("");
+        setEmail("");
+        setMessage("");
       }
-
-      toast.success("Message sent successfully!");
-      setName("");
-      setEmail("");
-      setMessage("");
     } catch (error: unknown) {
-      console.error('Contact send error:', error);
+      console.error("Contact send error:", error);
       toast.error("Failed to send message. Please try again.");
     } finally {
       setLoading(false);
@@ -71,64 +71,83 @@ const Contact = () => {
             </p>
           </div>
 
-          <Card className="bg-gradient-to-br from-card to-muted border-primary/30 shadow-[0_0_30px_hsl(var(--cyber-glow)/0.2)]">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-foreground">
-                <MessageSquare className="h-6 w-6 text-primary" />
-                Contact Form
-              </CardTitle>
-              <CardDescription className="text-muted-foreground">
-                Send us a message and we'll get back to you as soon as possible.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-foreground">Name</Label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your name"
-                    required
-                    className="bg-input border-border text-foreground"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-foreground">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    required
-                    className="bg-input border-border text-foreground"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="message" className="text-foreground">Message</Label>
-                  <Textarea
-                    id="message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Your message..."
-                    required
-                    rows={6}
-                    className="bg-input border-border text-foreground resize-none"
-                  />
-                </div>
+          {sent ? (
+            <Card className="bg-gradient-to-br from-card to-muted border-primary/30 shadow-[0_0_30px_hsl(var(--cyber-glow)/0.2)]">
+              <CardContent className="pt-10 pb-10 text-center space-y-4">
+                <CheckCircle2 className="h-16 w-16 text-primary mx-auto" />
+                <h2 className="text-2xl font-bold text-foreground">Message Sent!</h2>
+                <p className="text-muted-foreground text-lg">
+                  Thank you for reaching out. We'll get back to you soon.
+                </p>
                 <Button
-                  type="submit"
-                  className="w-full bg-primary text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--cyber-glow))]"
-                  disabled={loading}
+                  variant="outline"
+                  className="mt-4 border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
+                  onClick={() => setSent(false)}
                 >
-                  <Mail className="mr-2 h-4 w-4" />
-                  {loading ? "Sending..." : "Send Message"}
+                  Send another message
                 </Button>
-              </form>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-gradient-to-br from-card to-muted border-primary/30 shadow-[0_0_30px_hsl(var(--cyber-glow)/0.2)]">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <MessageSquare className="h-6 w-6 text-primary" />
+                  Contact Form
+                </CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  Send us a message and we'll get back to you as soon as possible.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-foreground">Name</Label>
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Your name"
+                      required
+                      className="bg-input border-border text-foreground"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-foreground">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      required
+                      className="bg-input border-border text-foreground"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="message" className="text-foreground">Message</Label>
+                    <Textarea
+                      id="message"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Your message..."
+                      required
+                      rows={6}
+                      className="bg-input border-border text-foreground resize-none"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full bg-primary text-primary-foreground hover:shadow-[0_0_30px_hsl(var(--cyber-glow))]"
+                    disabled={loading}
+                  >
+                    <Mail className="mr-2 h-4 w-4" />
+                    {loading ? "Sending..." : "Send Message"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
     </div>

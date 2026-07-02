@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Trash2, PenSquare, ArrowRight } from "lucide-react";
 import { isAdmin } from "@/lib/admin";
 import { uploadFile } from "@/lib/storage";
 
@@ -16,6 +17,7 @@ interface Tool {
 }
 
 const Tools = () => {
+  const navigate = useNavigate();
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminMode, setAdminMode] = useState(false);
@@ -98,6 +100,7 @@ const Tools = () => {
             </form>
           </section>
         )}
+
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Hacking <span className="text-primary">Tools</span>
@@ -116,7 +119,11 @@ const Tools = () => {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tools.map((tool) => (
-              <Card key={tool.id} className="bg-gradient-to-br from-card to-muted border-primary/30 hover:border-primary transition-all hover:shadow-[0_0_30px_hsl(var(--cyber-glow)/0.3)] hover:-translate-y-1">
+              <Card
+                key={tool.id}
+                className="group bg-gradient-to-br from-card to-muted border-primary/30 hover:border-primary transition-all hover:shadow-[0_0_30px_hsl(var(--cyber-glow)/0.3)] hover:-translate-y-1 cursor-pointer"
+                onClick={() => navigate(`/tools/${tool.id}`)}
+              >
                 <CardHeader>
                   <CardTitle className="text-foreground">{tool.name}</CardTitle>
                   {tool.category && (
@@ -124,23 +131,20 @@ const Tools = () => {
                   )}
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <CardDescription className="text-muted-foreground">
+                  <CardDescription className="text-muted-foreground line-clamp-3">
                     {tool.description}
                   </CardDescription>
-                  {tool.tool_url && (
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="w-full border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground"
-                    >
-                      <a href={tool.tool_url} target="_blank" rel="noopener noreferrer">
-                        Access Tool <ExternalLink className="ml-2 h-4 w-4" />
-                      </a>
-                    </Button>
-                  )}
+                  <span className="text-sm text-primary font-medium flex items-center gap-1 group-hover:underline">
+                    View details <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                  </span>
                   {adminMode && (
-                    <div className="mt-3">
-                      <button className="text-sm text-destructive" onClick={() => handleDelete(tool.id)}>Delete</button>
+                    <div className="pt-3 border-t border-border/30">
+                      <button
+                        className="text-sm text-destructive flex items-center gap-1.5 hover:underline"
+                        onClick={(e) => { e.stopPropagation(); handleDelete(tool.id); }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Delete
+                      </button>
                     </div>
                   )}
                 </CardContent>
