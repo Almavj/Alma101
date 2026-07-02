@@ -7,10 +7,18 @@ import { isAdmin } from "./admin";
  * Note: the helper calls getPublicUrl after upload, so buckets must be public to return
  * a usable URL. For private buckets, change the flow to use signed URLs from the backend.
  */
+function sanitizeFilename(name: string): string {
+  return name
+    .replace(/[^\w.\-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
+}
+
 export async function uploadFile(bucket: string, path: string, file: File): Promise<string | null> {
   try {
-    // debug: log attempt
-    console.debug('[uploadFile] attempting upload', { bucket, path, filename: file.name, size: file.size });
+    // Sanitize the path to remove invalid storage key characters
+    const safePath = path.split('/').map((seg, i) => i === seg.length - 1 ? sanitizeFilename(seg) : seg).join('/');
+    console.debug('[uploadFile] attempting upload', { bucket, path: safePath, filename: file.name, size: file.size });
 
     // Ensure we have a valid session. If this is the 'videos' bucket we require
     // admin privileges to be logged in (prevent non-admin client uploads).
@@ -30,7 +38,7 @@ export async function uploadFile(bucket: string, path: string, file: File): Prom
       }
     }
 
-    const { data, error } = await supabase.storage.from(bucket).upload(path, file, { cacheControl: '3600', upsert: false });
+    const { data, error } = await supabase.storage.from(bucket).upload(safePath, file, { cacheControl: '3600', upsert: false });
 
     if (error) {
       // log full error to help debug permission/credential issues
@@ -54,7 +62,7 @@ export async function uploadFile(bucket: string, path: string, file: File): Prom
     }
 
     const { data: publicData } = supabase.storage.from(bucket).getPublicUrl(data.path);
-    console.debug('[uploadFile] upload succeeded', { bucket, path, data, publicData });
+    console.debug('[uploadFile] upload succeeded', { bucket, path: safePath, data, publicData });
 
     // getPublicUrl always returns { publicUrl: string } — use it directly
     if (publicData?.publicUrl) {
@@ -69,5 +77,4 @@ export async function uploadFile(bucket: string, path: string, file: File): Prom
     return null;
   }
 }
-
 export default uploadFile;
