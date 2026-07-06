@@ -118,7 +118,7 @@ const BlogDetail = () => {
         {/* Content */}
         <div
           className="prose prose-invert prose-lg max-w-none
-            prose-headings:text-foreground prose-p:text-muted-foreground
+            prose-headings:text-foreground prose-p:text-foreground
             prose-a:text-primary prose-strong:text-foreground
             prose-img:rounded-xl prose-img:my-6 prose-img:shadow-lg
             prose-blockquote:border-primary/40"

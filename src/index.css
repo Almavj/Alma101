@@ -127,7 +127,7 @@ All colors MUST be HSL.
 .tiptap h1 { @apply text-3xl font-bold mt-6 mb-3; }
 .tiptap h2 { @apply text-2xl font-semibold mt-5 mb-2; }
 .tiptap h3 { @apply text-xl font-semibold mt-4 mb-2; }
-.tiptap p { @apply mb-3 leading-relaxed; }
+.tiptap p { @apply mb-3 leading-relaxed text-foreground; }
 .tiptap ul { @apply list-disc pl-6 mb-3; }
 .tiptap ol { @apply list-decimal pl-6 mb-3; }
 .tiptap li { @apply mb-1; }

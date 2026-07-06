@@ -31,7 +31,7 @@ import {
   Quote,
   Code,
 } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface RichTextEditorProps {
@@ -82,6 +82,39 @@ export function RichTextEditor({
   className,
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const colorPickerRef = useRef<HTMLDivElement>(null);
+
+  const presetColors = [
+    { name: "White", value: "#ffffff" },
+    { name: "Red", value: "#ef4444" },
+    { name: "Orange", value: "#f97316" },
+    { name: "Yellow", value: "#eab308" },
+    { name: "Green", value: "#22c55e" },
+    { name: "Blue", value: "#3b82f6" },
+    { name: "Purple", value: "#a855f7" },
+    { name: "Pink", value: "#ec4899" },
+    { name: "Cyan", value: "#06b6d4" },
+    { name: "Lime", value: "#84cc16" },
+    { name: "Amber", value: "#f59e0b" },
+    { name: "Emerald", value: "#10b981" },
+    { name: "Sky", value: "#0ea5e9" },
+    { name: "Indigo", value: "#6366f1" },
+    { name: "Rose", value: "#f43f5e" },
+    { name: "Teal", value: "#14b8a6" },
+    { name: "Gray", value: "#9ca3af" },
+    { name: "Black", value: "#000000" },
+  ];
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (colorPickerRef.current && !colorPickerRef.current.contains(e.target as Node)) {
+        setShowColorPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleImageUpload = useCallback(async () => {
     const input = document.createElement("input");
@@ -268,15 +301,70 @@ export function RichTextEditor({
 
         <ToolbarDivider />
 
-        <ToolbarButton
-          onClick={() => {
-            const color = window.prompt("Enter color (e.g. #ff0000, red, rgb(0,128,0)):");
-            if (color) editor.chain().focus().setColor(color).run();
-          }}
-          title="Text Color"
-        >
-          <Palette className="h-4 w-4" />
-        </ToolbarButton>
+        <div className="relative" ref={colorPickerRef}>
+          <ToolbarButton
+            onClick={() => setShowColorPicker(!showColorPicker)}
+            title="Text Color"
+          >
+            <Palette className="h-4 w-4" />
+          </ToolbarButton>
+          {showColorPicker && (
+            <div className="absolute top-full left-0 mt-2 p-3 bg-card border border-border rounded-lg shadow-xl z-50 w-56">
+              <p className="text-xs text-muted-foreground mb-2 font-medium">Pick a color</p>
+              <div className="grid grid-cols-6 gap-1.5 mb-3">
+                {presetColors.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    title={c.name}
+                    onClick={() => {
+                      editor.chain().focus().setColor(c.value).run();
+                      setShowColorPicker(false);
+                    }}
+                    className="w-7 h-7 rounded-full border-2 border-border hover:border-primary transition-colors cursor-pointer"
+                    style={{ backgroundColor: c.value }}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  editor.chain().focus().unsetColor().run();
+                  setShowColorPicker(false);
+                }}
+                className="w-full text-xs text-muted-foreground hover:text-foreground py-1.5 mb-2 rounded bg-muted/50 hover:bg-muted transition-colors"
+              >
+                Reset to default
+              </button>
+              <div className="flex items-center gap-2 border-t border-border pt-2">
+                <label className="text-xs text-muted-foreground">Custom:</label>
+                <input
+                  type="color"
+                  onChange={(e) => {
+                    editor.chain().focus().setColor(e.target.value).run();
+                    setShowColorPicker(false);
+                  }}
+                  className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
+                />
+                <input
+                  type="text"
+                  placeholder="#hex"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const val = (e.target as HTMLInputElement).value.trim();
+                      if (val) {
+                        editor.chain().focus().setColor(val).run();
+                        setShowColorPicker(false);
+                        (e.target as HTMLInputElement).value = "";
+                      }
+                    }
+                  }}
+                  className="flex-1 text-xs px-2 py-1 rounded bg-muted border border-border text-foreground focus:outline-none focus:border-primary"
+                />
+              </div>
+            </div>
+          )}
+        </div>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHighlight({ multicolor: true }).run()}
           active={editor.isActive("highlight")}
