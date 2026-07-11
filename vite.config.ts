@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
+import * as reactPlugin from "@vitejs/plugin-react-swc";
+const react = reactPlugin.default || (reactPlugin as any);
 import path from "path";
 
 // https://vitejs.dev/config/
