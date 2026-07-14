@@ -1,16 +1,17 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { motion, AnimatePresence } from 'framer-motion';
 import Hls from 'hls.js';
-import { ArrowUpRight, Mail, Github, Twitter, Linkedin, Dribbble } from 'lucide-react';
+import { ArrowUpRight, Mail, Github, BookOpen, Wrench, FileText, Video } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   const [count, setCount] = useState(0);
   const [wordIndex, setWordIndex] = useState(0);
-  const words = ["Design", "Create", "Inspire"];
+  const words = ["Defend", "Exploit", "Secure"];
 
   useEffect(() => {
     const wordInterval = setInterval(() => {
@@ -43,7 +44,7 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   return (
     <div className="fixed inset-0 z-[9999] bg-bg flex flex-col justify-between p-8">
       <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1 }}>
-        <span className="text-xs text-muted uppercase tracking-[0.3em]">Portfolio</span>
+        <span className="text-xs text-muted uppercase tracking-[0.3em]">Alma101 Security</span>
       </motion.div>
 
       <div className="flex-1 flex items-center justify-center">
@@ -81,12 +82,38 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   );
 };
 
+const features = [
+  {
+    icon: Video,
+    title: "Hacking Videos",
+    description: "Expert tutorials covering penetration testing, network security, and exploitation techniques.",
+    path: "/videos",
+  },
+  {
+    icon: BookOpen,
+    title: "Security Blog",
+    description: "Stay updated with the latest cybersecurity trends, CVEs, and vulnerability disclosures.",
+    path: "/blogs",
+  },
+  {
+    icon: Wrench,
+    title: "Ethical Hacking Tools",
+    description: "Access curated collections of essential pentesting and security assessment tools.",
+    path: "/tools",
+  },
+  {
+    icon: FileText,
+    title: "Security Writeups",
+    description: "Detailed walkthroughs of real-world vulnerabilities, CTF challenges, and bug bounties.",
+    path: "/writeup",
+  },
+];
+
 export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [scrollY, setScrollY] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const footerVideoRef = useRef<HTMLVideoElement>(null);
-  const parallaxContainerRef = useRef(null);
 
   const roles = ["Cybersecurity", "Penetration Testing", "Ethical Hacking", "Threat Hunting"];
   const [roleIndex, setRoleIndex] = useState(0);
@@ -127,36 +154,6 @@ export default function Index() {
       const tl = gsap.timeline();
       tl.to(".blur-in", { opacity: 1, filter: "blur(0px)", y: 0, duration: 1, stagger: 0.1, delay: 0.3, ease: "power3.out" }, 0)
         .to(".name-reveal", { opacity: 1, y: 0, duration: 1.2, delay: 0.1, ease: "power3.out" }, 0);
-        
-      const ctx = gsap.context(() => {
-        gsap.to(".parallax-left", {
-          yPercent: -50,
-          ease: "none",
-          scrollTrigger: {
-            trigger: parallaxContainerRef.current,
-            start: "top top",
-            end: "+=200%",
-            scrub: 1
-          }
-        });
-        gsap.to(".parallax-right", {
-          yPercent: -80,
-          ease: "none",
-          scrollTrigger: {
-            trigger: parallaxContainerRef.current,
-            start: "top top",
-            end: "+=200%",
-            scrub: 1.5
-          }
-        });
-        gsap.to(".marquee-content", {
-          xPercent: -100,
-          duration: 40,
-          ease: "none",
-          repeat: -1
-        });
-      });
-      return () => ctx.revert();
     }
   }, [isLoading]);
 
@@ -169,7 +166,7 @@ export default function Index() {
       </AnimatePresence>
 
       <div className="bg-bg min-h-screen font-body selection:bg-text-primary selection:text-bg">
-        {/* Section 2: Hero */}
+        {/* Hero */}
         <section className="relative h-screen w-full overflow-hidden">
           <div className="absolute inset-0 z-0">
             <video 
@@ -183,11 +180,11 @@ export default function Index() {
 
           <nav className={`fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 md:pt-6 px-4 transition-shadow duration-300 ${scrollY > 100 ? 'shadow-md shadow-black/10' : ''}`}>
             <div className="inline-flex items-center rounded-full backdrop-blur-md border border-white/10 bg-surface/80 px-2 py-1">
-               <div className="w-9 h-9 rounded-full accent-gradient p-[1px] group cursor-pointer hover:scale-110 transition-transform">
+               <Link to="/" className="w-9 h-9 rounded-full accent-gradient p-[1px] group cursor-pointer hover:scale-110 transition-transform">
                  <div className="w-full h-full bg-bg rounded-full flex items-center justify-center">
                    <span className="font-display italic text-[13px] text-text-primary">A101</span>
                  </div>
-               </div>
+               </Link>
                
                <div className="w-px h-5 bg-stroke mx-2 hidden sm:block"></div>
                
@@ -200,21 +197,21 @@ export default function Index() {
                    { name: "Writeups", path: "/writeup" },
                    { name: "Contact", path: "/contact" },
                  ].map(item => (
-                   <a key={item.name} href={item.path} className="text-xs sm:text-sm rounded-full px-3 sm:px-4 py-1 text-muted hover:text-text-primary hover:bg-stroke/50 transition-colors">
+                   <Link key={item.name} to={item.path} className="text-xs sm:text-sm rounded-full px-3 sm:px-4 py-1 text-muted hover:text-text-primary hover:bg-stroke/50 transition-colors">
                      {item.name}
-                   </a>
+                   </Link>
                  ))}
                </div>
                
                <div className="w-px h-5 bg-stroke mx-2"></div>
                
-               <a href="/auth" className="relative group ml-1 rounded-full text-xs sm:text-sm px-4 py-1 text-text-primary hover:text-white transition-colors">
+               <Link to="/auth" className="relative group ml-1 rounded-full text-xs sm:text-sm px-4 py-1 text-text-primary hover:text-white transition-colors">
                  <span className="absolute inset-[-2px] rounded-full accent-gradient opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                  <span className="relative z-10 bg-surface rounded-full backdrop-blur-md flex items-center gap-1 absolute inset-0 justify-center">
                    Log In <ArrowUpRight size={14} />
                  </span>
                  <span className="opacity-0">Log In <ArrowUpRight size={14} /></span>
-               </a>
+               </Link>
             </div>
           </nav>
 
@@ -235,18 +232,18 @@ export default function Index() {
               Your premier online platform for mastering cybersecurity and ethical hacking techniques to protect digital assets.
             </p>
             <div className="flex gap-4 pointer-events-auto">
-              <button className="group relative rounded-full hover:scale-105 transition-transform duration-300">
+              <Link to="/auth" className="group relative rounded-full hover:scale-105 transition-transform duration-300">
                 <span className="absolute inset-[-2px] rounded-full accent-gradient opacity-0 group-hover:opacity-100 transition-opacity"></span>
                 <span className="relative z-10 flex items-center justify-center px-7 py-3.5 bg-text-primary text-bg group-hover:bg-bg group-hover:text-text-primary rounded-full transition-colors duration-300 text-sm font-medium">
                   Start Learning
                 </span>
-              </button>
-              <button className="group relative rounded-full hover:scale-105 transition-transform duration-300">
+              </Link>
+              <Link to="/contact" className="group relative rounded-full hover:scale-105 transition-transform duration-300">
                 <span className="absolute inset-[-2px] rounded-full accent-gradient opacity-0 group-hover:opacity-100 transition-opacity"></span>
                 <span className="relative z-10 flex items-center justify-center px-7 py-3.5 bg-bg text-text-primary border-2 border-stroke group-hover:border-transparent rounded-full transition-all duration-300 text-sm font-medium">
-                  Join Now
+                  Get in Touch
                 </span>
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -258,7 +255,7 @@ export default function Index() {
           </div>
         </section>
 
-        {/* Section 3: Selected Works */}
+        {/* Platform Features */}
         <section className="bg-bg py-16 md:py-24 relative z-20">
           <div className="max-w-[1200px] mx-auto px-6 md:px-10 lg:px-16">
             <motion.div 
@@ -266,180 +263,54 @@ export default function Index() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
-              className="flex flex-col md:flex-row md:items-end justify-between mb-12"
+              className="text-center mb-16"
             >
-              <div>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-8 h-px bg-stroke"></div>
-                  <span className="text-xs text-muted uppercase tracking-[0.3em]">Tools & Writeups</span>
-                </div>
-                <h2 className="text-4xl md:text-5xl lg:text-6xl text-text-primary tracking-tight">
-                  Featured <span className="font-display italic text-5xl md:text-6xl lg:text-7xl">resources</span>
-                </h2>
-                <p className="text-muted mt-4 max-w-md text-sm md:text-base">
-                  A selection of practical tools and detailed writeups for the security community.
-                </p>
-              </div>
-              <a href="/tools" className="hidden md:inline-flex group relative rounded-full">
-                <span className="absolute inset-[-2px] rounded-full accent-gradient opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                <span className="relative z-10 flex items-center gap-2 px-6 py-3 bg-surface text-text-primary rounded-full transition-colors border border-stroke group-hover:border-transparent text-sm">
-                  Explore tools <ArrowUpRight size={14} />
-                </span>
-              </a>
-            </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-6">
-              {[
-                { title: "Zero-Day Exploit", img: "1555949963-c1c5a9dd52a2", label: "Writeup", cols: 7, aspect: "aspect-[4/3]" },
-                { title: "Network Scanner", img: "1526374965328-7f61d4dc18c5", label: "Tool", cols: 5, aspect: "aspect-square md:aspect-auto" },
-                { title: "Malware Analysis", img: "1550751827-4bd374c3f58b", label: "Writeup", cols: 5, aspect: "aspect-square md:aspect-auto" },
-                { title: "Payload Generator", img: "1614064007833-289b53e87853", label: "Tool", cols: 7, aspect: "aspect-[4/3]" }
-              ].map((project, idx) => (
-                <div key={idx} className={`md:col-span-${project.cols} ${project.aspect} group relative rounded-3xl overflow-hidden border border-stroke bg-surface cursor-pointer`}>
-                  <img src={`https://images.unsplash.com/photo-${project.img}?q=80&w=2000&auto=format&fit=crop`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={project.title} />
-                  <div className="absolute inset-0 opacity-20 mix-blend-multiply transition-opacity duration-500 group-hover:opacity-0" style={{ backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '4px 4px' }}></div>
-                  <div className="absolute inset-0 bg-bg/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 backdrop-blur-md flex items-center justify-center">
-                    <div className="relative rounded-full p-[2px] accent-gradient scale-90 group-hover:scale-100 transition-transform duration-500 delay-75">
-                      <div className="bg-white rounded-full px-6 py-2 flex items-center gap-2">
-                        <span className="text-black text-sm">View — </span>
-                        <span className="text-black font-display italic text-lg">{project.label}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Section 4: Journal */}
-        <section className="bg-bg py-16 md:py-24 relative z-20">
-          <div className="max-w-[1200px] mx-auto px-6 md:px-10 lg:px-16">
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
-              className="flex flex-col md:flex-row md:items-end justify-between mb-12"
-            >
-              <div>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-8 h-px bg-stroke"></div>
-                  <span className="text-xs text-muted uppercase tracking-[0.3em]">Security Blog</span>
-                </div>
-                <h2 className="text-4xl md:text-5xl lg:text-6xl text-text-primary tracking-tight">
-                  Advisories & <span className="font-display italic text-5xl md:text-6xl lg:text-7xl">news</span>
-                </h2>
-              </div>
-              <a href="/blogs" className="mt-6 md:mt-0 group relative rounded-full self-start md:self-auto">
-                <span className="absolute inset-[-2px] rounded-full accent-gradient opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                <span className="relative z-10 flex items-center gap-2 px-6 py-3 bg-surface text-text-primary rounded-full transition-colors border border-stroke group-hover:border-transparent text-sm">
-                  View all advisories <ArrowUpRight size={14} />
-                </span>
-              </a>
-            </motion.div>
-
-            <div className="flex flex-col gap-4">
-              {[
-                { title: "Zero-Day Analysis: The latest RCE vulnerability", date: "Oct 12, 2026", time: "5 min read", img: "1550745165-9bc0b252726f" },
-                { title: "Defending against supply chain attacks", date: "Sep 28, 2026", time: "4 min read", img: "1561070791-2526d30994b5" },
-                { title: "Securing modern cloud infrastructure", date: "Aug 15, 2026", time: "7 min read", img: "1555066931-4365d14bab8c" },
-                { title: "The evolution of modern ransomware", date: "Jul 02, 2026", time: "6 min read", img: "1518770660439-4636190af475" }
-              ].map((article, i) => (
-                <a key={i} href="#" className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-4 bg-surface/30 hover:bg-surface border border-stroke rounded-[40px] sm:rounded-full transition-colors group">
-                  <img src={`https://images.unsplash.com/photo-${article.img}?w=200&h=200&fit=crop`} className="w-16 h-16 rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" alt={article.title} />
-                  <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4">
-                    <h3 className="text-lg md:text-xl text-text-primary group-hover:text-white transition-colors">{article.title}</h3>
-                    <div className="flex items-center gap-4 text-sm text-muted">
-                      <span>{article.time}</span>
-                      <div className="w-1 h-1 rounded-full bg-stroke"></div>
-                      <span>{article.date}</span>
-                    </div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Section 5: Explorations */}
-        <section className="bg-bg relative z-20" style={{ minHeight: '300vh' }}>
-          <div ref={parallaxContainerRef} className="h-screen sticky top-0 flex items-center justify-center overflow-hidden">
-            <div className="z-10 text-center pointer-events-none relative pt-20 mix-blend-difference">
               <div className="flex items-center justify-center gap-4 mb-4">
                 <div className="w-8 h-px bg-stroke"></div>
-                <span className="text-xs text-muted uppercase tracking-[0.3em]">Attack Vectors</span>
+                <span className="text-xs text-muted uppercase tracking-[0.3em]">What We Offer</span>
                 <div className="w-8 h-px bg-stroke"></div>
               </div>
-              <h2 className="text-6xl md:text-8xl lg:text-9xl text-text-primary tracking-tight mb-8">
-                Threat <span className="font-display italic">landscape</span>
+              <h2 className="text-4xl md:text-5xl lg:text-6xl text-text-primary tracking-tight">
+                Master the <span className="font-display italic text-5xl md:text-6xl lg:text-7xl">art of security</span>
               </h2>
-              <a href="/writeup" className="pointer-events-auto group relative rounded-full inline-block mix-blend-normal">
-                <span className="absolute inset-[-2px] rounded-full accent-gradient opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                <span className="relative z-10 flex items-center gap-2 px-8 py-4 bg-bg text-text-primary rounded-full border border-stroke group-hover:border-transparent transition-all">
-                  Explore Vulnerabilities
-                </span>
-              </a>
-            </div>
+              <p className="text-muted mt-4 max-w-lg mx-auto text-sm md:text-base">
+                Everything you need to learn, practice, and stay ahead in cybersecurity — all in one platform.
+              </p>
+            </motion.div>
 
-            <div className="absolute inset-0 z-0 pointer-events-none flex justify-center items-center">
-              <div className="grid grid-cols-2 gap-8 md:gap-32 max-w-[1200px] w-full px-8 relative h-[150vh]">
-                <div className="flex flex-col gap-24 pt-[20vh] parallax-left">
-                  {[
-                    { title: "Hacking Videos", desc: "Learn from expert tutorials covering penetration testing and network security.", img: "1614064007833-289b53e87853" },
-                    { title: "Security Blogs", desc: "Stay updated with the latest cybersecurity trends and vulnerabilities.", img: "1498050108023-c5249f4df085" },
-                    { title: "Hacking Tools", desc: "Access curated collections of essential pentesting tools.", img: "1526374965328-7f61d4dc18c5" }
-                  ].map((card, i) => (
-                    <div key={`l-${i}`} className="w-full max-w-[280px] aspect-[4/5] rounded-3xl overflow-hidden border border-stroke/50 -rotate-3 transform hover:rotate-0 transition-transform duration-500 pointer-events-auto ml-auto grayscale hover:grayscale-0 relative group/card cursor-pointer">
-                      <img src={`https://images.unsplash.com/photo-${card.img}?q=80&w=600&h=800&fit=crop`} className="w-full h-full object-cover" alt={card.title} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/60 to-transparent flex flex-col justify-end p-6 translate-y-8 group-hover/card:translate-y-0 transition-transform duration-500">
-                        <h3 className="text-2xl text-text-primary font-display italic mb-2">{card.title}</h3>
-                        <p className="text-sm text-muted opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 delay-100">{card.desc}</p>
-                      </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {features.map((feature, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.6, delay: idx * 0.1 }}
+                >
+                  <Link
+                    to={feature.path}
+                    className="block p-8 rounded-3xl border border-stroke bg-surface/30 hover:bg-surface/60 transition-all duration-500 group h-full"
+                  >
+                    <div className="w-12 h-12 rounded-2xl accent-gradient flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <feature.icon size={24} className="text-white" />
                     </div>
-                  ))}
-                </div>
-                <div className="flex flex-col gap-24 pt-[50vh] parallax-right">
-                  {[
-                    { title: "Bug Bounty", desc: "Detailed writeups on finding and exploiting real-world vulnerabilities.", img: "1555949963-c1c5a9dd52a2" },
-                    { title: "Threat Intel", desc: "Analysis of the latest APT groups, malware strains, and cyber attacks.", img: "1550751827-4bd374c3f58b" },
-                    { title: "CTF Events", desc: "Participate in Capture The Flag events and level up your hacking skills.", img: "1542831371229-5915d31cb7ee" }
-                  ].map((card, i) => (
-                    <div key={`r-${i}`} className="w-full max-w-[280px] aspect-[4/5] rounded-3xl overflow-hidden border border-stroke/50 rotate-3 transform hover:rotate-0 transition-transform duration-500 pointer-events-auto mr-auto grayscale hover:grayscale-0 relative group/card cursor-pointer">
-                      <img src={`https://images.unsplash.com/photo-${card.img}?q=80&w=600&h=800&fit=crop`} className="w-full h-full object-cover" alt={card.title} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/60 to-transparent flex flex-col justify-end p-6 translate-y-8 group-hover/card:translate-y-0 transition-transform duration-500">
-                        <h3 className="text-2xl text-text-primary font-display italic mb-2">{card.title}</h3>
-                        <p className="text-sm text-muted opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 delay-100">{card.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                    <h3 className="text-xl md:text-2xl text-text-primary font-display italic mb-3 group-hover:text-white transition-colors">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm text-muted leading-relaxed mb-4">
+                      {feature.description}
+                    </p>
+                    <span className="inline-flex items-center gap-1 text-xs text-muted uppercase tracking-[0.15em] group-hover:text-text-primary transition-colors">
+                      Explore <ArrowUpRight size={12} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    </span>
+                  </Link>
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Section 6: Stats */}
-        <section className="bg-bg py-16 md:py-24 border-t border-stroke/30 relative z-20">
-          <div className="max-w-[1200px] mx-auto px-6 md:px-10 lg:px-16">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 divide-y md:divide-y-0 md:divide-x divide-stroke/50">
-              <div className="flex flex-col items-center md:items-start pt-8 md:pt-0">
-                <span className="text-5xl lg:text-7xl font-display italic text-text-primary mb-4">10K+</span>
-                <span className="text-sm text-muted uppercase tracking-[0.2em]">Community Members</span>
-              </div>
-              <div className="flex flex-col items-center md:items-start pt-8 md:pt-0 md:pl-12">
-                <span className="text-5xl lg:text-7xl font-display italic text-text-primary mb-4">500+</span>
-                <span className="text-sm text-muted uppercase tracking-[0.2em]">Security Writeups</span>
-              </div>
-              <div className="flex flex-col items-center md:items-start pt-8 md:pt-0 md:pl-12">
-                <span className="text-5xl lg:text-7xl font-display italic text-text-primary mb-4">50+</span>
-                <span className="text-sm text-muted uppercase tracking-[0.2em]">Ethical Hacking Tools</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Section 7: Contact / Footer */}
+        {/* Contact / Footer */}
         <section className="bg-bg pt-16 md:pt-20 pb-8 md:pb-12 overflow-hidden relative z-20">
           <div className="absolute inset-0 z-0">
             <video 
@@ -451,35 +322,19 @@ export default function Index() {
           </div>
 
           <div className="relative z-10">
-            <div className="flex whitespace-nowrap overflow-hidden mb-20 marquee-container mix-blend-difference">
-              <div className="flex items-center text-7xl md:text-9xl font-display italic text-white marquee-content">
-                {Array(10).fill("PROTECTING DIGITAL ASSETS • SECURING THE FUTURE • ").map((text, i) => (
-                  <span key={i} className="px-4">{text}</span>
-                ))}
-              </div>
-              <div className="flex items-center text-7xl md:text-9xl font-display italic text-white marquee-content">
-                {Array(10).fill("PROTECTING DIGITAL ASSETS • SECURING THE FUTURE • ").map((text, i) => (
-                  <span key={i} className="px-4">{text}</span>
-                ))}
-              </div>
-            </div>
-
             <div className="flex justify-center mb-20">
-              <a href="mailto:contact@alma101.com" className="group relative rounded-full inline-block">
+              <Link to="/contact" className="group relative rounded-full inline-block">
                 <span className="absolute inset-[-2px] rounded-full accent-gradient opacity-0 group-hover:opacity-100 transition-opacity duration-500"></span>
                 <span className="relative z-10 flex flex-col items-center justify-center px-16 py-12 bg-bg text-text-primary rounded-full transition-colors border border-stroke group-hover:border-transparent">
                   <Mail size={32} className="mb-4 text-muted group-hover:text-white transition-colors" />
                   <span className="text-3xl md:text-4xl tracking-tight">Get in touch</span>
                 </span>
-              </a>
+              </Link>
             </div>
 
             <div className="max-w-[1200px] mx-auto px-6 md:px-10 lg:px-16 flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-6">
-                <a href="#" className="text-muted hover:text-white transition-colors"><Twitter size={20} /></a>
-                <a href="#" className="text-muted hover:text-white transition-colors"><Linkedin size={20} /></a>
-                <a href="#" className="text-muted hover:text-white transition-colors"><Dribbble size={20} /></a>
-                <a href="#" className="text-muted hover:text-white transition-colors"><Github size={20} /></a>
+                <a href="https://github.com/Almavj" target="_blank" rel="noopener noreferrer" className="text-muted hover:text-white transition-colors"><Github size={20} /></a>
               </div>
               <div className="flex items-center gap-3 bg-surface/50 backdrop-blur border border-stroke px-5 py-2.5 rounded-full">
                 <div className="relative flex h-2 w-2">
